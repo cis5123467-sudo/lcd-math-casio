@@ -1,14 +1,13 @@
-# LCD Math v0.0.1 for Graph Math+
+# LCD Math v0.0.2 for Graph Math+
 
-A scientific calculator add-in with an LCD display refined against Chris's physical fx-85GT CW photograph. This release adds editable natural fractions and powers, placeholder boxes, correctly sized brackets and radicals, indexed roots, inverse-function superscripts, and clearer mathematical symbols. The main calculation screen contains the expression, answer, and calculator status indicators only. It has no shortcut bar, branding, tooltips, or help text.
+A scientific calculator add-in with an LCD display refined against Chris's physical fx-85GT CW photograph. This release adds a slightly darker olive LCD background, fixed glass/pixel grain and subtle dot shading in the characters. Natural fractions, powers, roots and their placeholder boxes keep the same layout and calculation behaviour. The main calculation screen contains the expression, answer, and calculator status indicators only. It has no shortcut bar, branding, tooltips, or help text.
 
-[Download the latest release](https://github.com/cis5123467-sudo/lcd-math-casio/releases/latest) · [Complete controls](KEYBINDS.md) · [Release notes](release/RELEASE-v0.0.1.md)
+[Download the latest release](https://github.com/cis5123467-sudo/lcd-math-casio/releases/latest) · [Complete controls](KEYBINDS.md) · [Release notes](https://github.com/cis5123467-sudo/lcd-math-casio/releases/tag/v0.0.2)
 
-![LCD Math fraction rendering](release/preview-root-fraction-v0.0.1.png)
 
 ## Install
 
-Copy `release/lcd-math-v0.0.1.g3a` to the root of the calculator's USB storage, eject it, then launch **LCD Math** from **TOOLS** on the existing MPM installation. No companion assets are required. Target: Chris's working Graph Math+, OS **02.00.2202**, with MPM already installed.
+Download `lcd-math-v0.0.2.g3a` from [GitHub Releases](https://github.com/cis5123467-sudo/lcd-math-casio/releases/latest), then copy it to the root of the calculator's USB storage, eject it, then launch **LCD Math** from **TOOLS** on the existing MPM installation. No companion assets are required. Target: Chris's working Graph Math+, OS **02.00.2202**, with MPM already installed.
 
 ## LCD contrast
 
@@ -73,26 +72,26 @@ cd lcd-math-casio
 python3 tools/build.py
 ```
 
-The existing fxSDK/gint toolchain is required. Set `CASIO_SDK` to the fxSDK installation prefix if needed; `CMAKE` can select the CMake executable. This project uses fxSDK's colour CMake toolchain, the `Gint::Gint` target, and `GenerateG3A`. The small local `FindGint.cmake` resolves this installation's libraries through `fxsdk path` because its sysroot is outside GCC's default library path. Icons and font data are already generated; `tools/assets.py` regenerates them with Pillow.
+The existing fxSDK/gint toolchain is required. Set `CASIO_SDK` to the fxSDK installation prefix if needed; `CMAKE` can select the CMake executable. This project uses fxSDK's colour CMake toolchain, the `Gint::Gint` target, and `GenerateG3A`. The small local `FindGint.cmake` resolves this installation's libraries through `fxsdk path` because its sysroot is outside GCC's default library path. The build creates the local `release/` directory. Icons and font data are already generated; `tools/assets.py` regenerates them with Pillow.
 
 Known build: SH GCC **15.2.0**, fxSDK dev **a6e46eb6**, gint dev **463f180f** (reported version 2.11.0), fxlibc dev **b96335c2**, OpenLibm **9828d2e3**. These are the Math+-aware toolchain revisions used by the existing local NumPlay and NumAI ports. The calculation engine and textbook layout started from Chris's local NumAI-MPM project. The display, editor integration, catalog, controls, contrast and save format are specific to this add-in. The fxlibc printf adaptation and linked libraries' notices are under `vendor/`.
 
 ## Verification
 
-Run `python3 tools/test.py` for isolated host checks, `python3 tools/check_mpm.py /path/to/mpm release/lcd-math-v0.0.1.g3a` for loader metadata, and `python3 tools/smoke.py` with Pillow and the local emulator for runtime checks.
+Run `python3 tools/test.py` for isolated host checks, `python3 tools/check_mpm.py /path/to/mpm release/lcd-math-v0.0.2.g3a` for loader metadata, and `python3 tools/smoke.py` with Pillow and the local emulator for runtime checks. Run `python3 tools/test_lcd_texture.py` after the emulator suites to verify the fixed texture and preserved readability.
 
 The following checks passed for the released binary:
 
-- 29 dedicated SuperH fraction, radical, bracket, power, inverse-function and symbol scenarios. Screenshots and decoded saved values are in `verification/render-v0.0.1/`.
+- 29 dedicated SuperH fraction, radical, bracket, power, inverse-function and symbol scenarios. Running the tests generates screenshots and decoded saved values locally in `verification/render-v0.0.2/`.
 - 27 host layout cases check drawn bounds, superscript carets, numerator/denominator carets, symbolic function rendering and implicit-product grouping under AddressSanitizer and UndefinedBehaviorSanitizer.
 
 - 66 numerical/domain cases plus template editing and grouping cases under host AddressSanitizer and UndefinedBehaviorSanitizer, plus exact forms, editing, memory, history, display formats, saves and corrupt-save recovery.
 - Actual SuperH binary execution in **emuCasioCalc's fx-CG50 model**: arithmetic, fractions and decimals, automatic parentheses, radicals, trig, factorials, Ans continuation, insertion and deletion, history editing, error correction, catalog, combinations, DEG/RAD/GRAD, memory, help, horizontal scrolling and clean HOME exit.
-- Live contrast changes at both limits, persisted contrast across independent launches, identical restored calculation screens, and no footer text on the main LCD. Screenshots and logs are in `verification/smoke-v0.0.1/`.
+- Live contrast changes at both limits, persisted contrast across independent launches, identical restored calculation screens, and no footer text on the main LCD. Running the tests generates screenshots and logs locally in `verification/smoke-v0.0.2/`.
 - MPM v1.1's actual discovery and metadata C functions, with a host file shim, recognise the G3A name, version and icon blocks. The G3A header sizes and checksums are also valid.
 
 The emulator does not model Graph Math+ hardware. Physical startup, named-key operation, contrast readability, saving, exit and relaunch on Chris's Graph Math+ remain to be checked on that device. Display revision and exact installed MPM build are not established.
 
 ## Complete key guide and future filenames
 
-See [KEYBINDS.md](KEYBINDS.md) for all implemented controls and worked examples. The current release is `lcd-math-v0.0.1.g3a`; the next is `lcd-math-v0.0.2.g3a`, incrementing the patch number each time. Existing 1.0.x binaries retain their original names. The release rule is recorded in `AGENTS.md`.
+See [KEYBINDS.md](KEYBINDS.md) for all implemented controls and worked examples. The current release is `lcd-math-v0.0.2.g3a`; the next is `lcd-math-v0.0.3.g3a`, incrementing the patch number each time. Build files are distributed through GitHub Releases. The source repository contains application code, assets, build/test tools, dependency notices and user documentation. Generated builds and verification output, local release drafts/previews, research and assistant-only instructions/queues are ignored by Git.

@@ -5,9 +5,9 @@ from struct import unpack_from
 import subprocess, shutil
 from PIL import Image,ImageChops
 root=Path(__file__).resolve().parents[1]
-addin=root/'release/lcd-math-v0.0.1.g3a'
+addin=root/'release/lcd-math-v0.0.2.g3a'
 emulator=Path('/tmp/numplay-toolchain/emu-build/emucasiocalc')
-base=root/'verification/smoke-v0.0.1'
+base=root/'verification/smoke-v0.0.2'
 if base.exists(): shutil.rmtree(base)
 
 def run(name,script):
@@ -95,10 +95,17 @@ run('contrast','shot restored.png, MENU')
 assert ImageChops.difference(Image.open(contrast/'calculator.png'),Image.open(contrast/'restored.png')).getbbox() is None
 light=Image.open(contrast/'light.png').convert('RGB').crop((15,40,380,190))
 dark=Image.open(contrast/'dark.png').convert('RGB').crop((15,40,380,190))
-assert min(sum(p) for p in light.getdata())>min(sum(p) for p in dark.getdata())+100
+assert min(sum(p) for p in light.get_flattened_data())>min(sum(p) for p in dark.get_flattened_data())+100
 for shot in (contrast/'calculator.png',calc/'ans.png'):
     im=Image.open(shot).convert('RGB')
-    assert len(set(im.crop((10,201,385,215)).getdata()))==1, 'Extra text on main LCD'
+    # An empty footer region must contain only the fixed 16x16 LCD texture.
+    phases={}
+    for y in range(201,215):
+        for x in range(10,385):
+            phase=(x%16,y%16);color=im.getpixel((x,y))
+            assert phase not in phases or phases[phase]==color, 'Extra text on main LCD'
+            phases[phase]=color
+    assert 1<len(set(phases.values()))<=3, 'Missing or excessive LCD grain'
 print('Contrast clamps at 0/10, changes all LCD shades live, persists, and main LCD has no footer text',flush=True)
 
 for shot in base.rglob('*.png'):

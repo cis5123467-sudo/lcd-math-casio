@@ -66,6 +66,7 @@ static void render(void) {
     }
     if(view==4) lcd_help(help_page);
     if(view==5) lcd_contrast();
+    lcd_finish();
     dupdate();
 }
 static void calculate_key(int key,bool shift,bool alpha) {
@@ -166,7 +167,7 @@ int main(void) {
         lcd_frame("SAVE ERROR");
         lcd_text(18,60,"Could not save lcdmath.dat",1,LCD_INK);
         lcd_text(18,83,"Check USB storage free space.",1,LCD_INK);
-        lcd_text(18,120,"EXE or HOME exits without saving.",1,LCD_INK); dupdate();
+        lcd_text(18,120,"EXE or HOME exits without saving.",1,LCD_INK); lcd_finish(); dupdate();
         int key; do { key=nextkey().key; } while(key!=KEY_EXE && key!=KEY_OK && key!=KEY_HOME);
     }
     return 0;

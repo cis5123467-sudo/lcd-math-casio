@@ -15,11 +15,50 @@ static uint16_t blend(uint16_t a,uint16_t b,int amount) {
     int blue=((a&31)*(10-amount)+(b&31)*amount)/10;
     return (r<<11)|(g<<5)|blue;
 }
+static uint16_t paper_pixels[256],ink_pixels[256],rule_pixels[256],rule_ink;
+static int palette_contrast=-1;
+static uint16_t shifted(uint16_t color,int step) {
+    int r=((color>>11)&31)+step,g=((color>>5)&63)+step,b=(color&31)+step;
+    if(r<0)r=0;
+    if(r>31)r=31;
+    if(g<0)g=0;
+    if(g>63)g=63;
+    if(b<0)b=0;
+    if(b>31)b=31;
+    return (r<<11)|(g<<5)|b;
+}
 static void palette(void) {
     int c=calc.contrast;
-    lcd_paper=rgb565(197-c/2,211-c/2,168-c/2);
+    if(c==palette_contrast)return;
+    palette_contrast=c;
+    lcd_paper=rgb565(187-c/2,201-c/2,158-c/2);
     lcd_ink=rgb565(126-12*c,139-12*c,94-8*c);
     lcd_mid=blend(lcd_paper,lcd_ink,6);
+    rule_ink=blend(lcd_paper,lcd_ink,9);
+    // A fixed screen-space pattern models the glass/pixel lattice. No random
+    // frame state, missing pixels or changes to font advances are involved.
+    for(int y=0;y<16;y++)for(int x=0;x<16;x++) {
+        unsigned index=y*16+x;
+        uint32_t hash=(index+17u)*2654435761u;
+        hash^=hash>>13;hash*=2246822519u;hash^=hash>>16;
+        int grain=(hash&7)==0?-1:(hash&7)==1?1:0;
+        int dot=((x&1)||(y&1))?1:0;
+        if((hash&31)==3)dot++;
+        paper_pixels[index]=shifted(lcd_paper,grain);
+        ink_pixels[index]=shifted(lcd_ink,dot);
+        rule_pixels[index]=shifted(rule_ink,dot);
+    }
+}
+void lcd_finish(void) {
+    // Texture only LCD shades. Bezel colors and all geometric bounds remain
+    // untouched; shade lookup keeps redraw cost independent of expression size.
+    for(int y=0;y<DHEIGHT;y++)for(int x=0;x<DWIDTH;x++) {
+        uint16_t *pixel=&gint_vram[y*DWIDTH+x];
+        unsigned index=(y&15)*16+(x&15);
+        if(*pixel==LCD_PAPER)*pixel=paper_pixels[index];
+        else if(*pixel==LCD_INK)*pixel=ink_pixels[index];
+        else if(*pixel==rule_ink)*pixel=rule_pixels[index];
+    }
 }
 static int clip_left=0,clip_top=0,clip_right=395,clip_bottom=223;
 static void rectangle(int x,int y,int w,int h,uint16_t ink) {

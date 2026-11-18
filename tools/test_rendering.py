@@ -4,8 +4,8 @@ from pathlib import Path
 import json,math,struct,subprocess,shutil
 from PIL import Image
 root=Path(__file__).resolve().parents[1]
-base=root/'verification/render-v0.0.1'
-addin=root/'release/lcd-math-v0.0.1.g3a'
+base=root/'verification/render-v0.0.2'
+addin=root/'release/lcd-math-v0.0.2.g3a'
 
 def catalog(index):
  return ', '.join(['F1']+['RIGHT']*(index//5)+['DOWN']*(index%5)+['EXE'])+', '

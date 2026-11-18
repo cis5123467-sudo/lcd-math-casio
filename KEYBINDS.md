@@ -1,6 +1,6 @@
 # LCD Math controls and usage
 
-This guide describes the v0.0.1 build. Press and release SHIFT or ALPHA, then press the next key; you do not need to hold them. Pressing the same modifier twice cancels it. Modifiers reset after the next non-modifier key.
+This guide describes the v0.0.2 build. Press and release SHIFT or ALPHA, then press the next key; you do not need to hold them. Pressing the same modifier twice cancels it. Modifiers reset after the next non-modifier key.
 
 ## Getting started
 

@@ -1,10 +1,16 @@
+# Generated builds and calculator state
 build-cg/
+release/
+verification/
 __pycache__/
 *.dat
 *.bak
 *.tmp
-
 .DS_Store
-verification/**/storage/
-# Downloaded reference images are linked from research/README.md.
-research/*.png
+
+# Local assistant instructions, queues, release drafts, previews and research
+AGENTS.md
+docs/
+research/
+# Historical one-off diagnostic for the pre-template prototype
+tools/test_fraction_key.py

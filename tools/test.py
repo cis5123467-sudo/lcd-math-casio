@@ -3,6 +3,7 @@
 from pathlib import Path
 import os,subprocess,tempfile
 root=Path(__file__).resolve().parents[1]
+(root/'verification').mkdir(exist_ok=True)
 with tempfile.TemporaryDirectory(prefix='lcd-math-check-') as folder:
     exe=Path(folder)/'checks'
     subprocess.run([os.environ.get('CC','cc'),'-std=c11','-Wall','-Wextra','-fsanitize=address,undefined','-g',
