@@ -3,7 +3,7 @@
 import math,json,shutil
 from PIL import Image
 from mathplus_emulator import ROOT,run,saved,catalog
-base=ROOT/'verification/render-v0.0.3'
+base=ROOT/'verification/render-v0.0.3-r1'
 cases={
  'fraction-template':('FRAC, shot placeholder.png, 1, shot numerator.png, DOWN, shot denominator-placeholder.png, 3, shot input.png, RIGHT, EXE',1/3,'1/3'),
  'fraction-capture':('1, 2, FRAC, 3, shot input.png, EXE',4,'4'),

@@ -166,13 +166,17 @@ static void status_backplate(int x,int y,int width,int height) {
 void lcd_calculator(void) {
     lcd_frame(NULL);
     const char *angles[]={"D","R","G"};
-    if(calc.shift)status_backplate(13,13,11,15);
-    if(calc.alpha||calc.alpha_lock)status_backplate(27,13,17,15);
-    status_backplate(45,12,21,16);
-    status_backplate(78,12,14,17);
-    if(calc.memory_set)status_backplate(98,13,12,15);
-    if(calc.format)status_backplate(118,13,23,15);
-    if(calc.count)status_backplate(362,12,15,15);
+    // The reference CW glass retains faint rectangular electrode areas even
+    // when their indicators are off. Keep them fixed across the whole row;
+    // active indicators are still drawn separately below.
+    static const uint16_t pads[][4]={
+        {13,13,11,15},{27,13,17,15},{45,12,21,16},{78,12,14,17},
+        {98,13,12,15},{118,13,23,15},{148,13,15,15},{170,13,12,15},
+        {190,13,19,15},{217,13,13,15},{238,13,16,15},{262,13,12,15},
+        {282,13,18,15},{308,13,13,15},{329,13,16,15},{362,12,15,15}
+    };
+    for(unsigned i=0;i<sizeof(pads)/sizeof(*pads);i++)
+        status_backplate(pads[i][0],pads[i][1],pads[i][2],pads[i][3]);
     lcd_text(16,17,calc.shift?"S":" ",1,LCD_INK);
     lcd_text(30,17,calc.alpha_lock?"A*":calc.alpha?"A":" ",1,LCD_INK);
     // Natural-input symbol and boxed angle indicator, like the CW status row.

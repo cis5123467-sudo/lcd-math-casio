@@ -3,7 +3,7 @@
 import shutil
 from PIL import Image,ImageChops
 from mathplus_emulator import ROOT,run as drive,saved,catalog
-base=ROOT/'verification/smoke-v0.0.3'
+base=ROOT/'verification/smoke-v0.0.3-r1'
 if base.exists():shutil.rmtree(base)
 def run(name,script):return drive(base/name,script)
 def check(entries,expression,value,exact=None):

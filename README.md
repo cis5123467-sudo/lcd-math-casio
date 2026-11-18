@@ -1,14 +1,18 @@
-# LCD Math v0.0.3 for Graph Math+
+# LCD Math v0.0.3-r1 for Graph Math+
 
-A real-valued scientific calculator add-in with a natural textbook display and an olive LCD appearance based on Chris’s physical fx-85GT CW. It draws stacked fractions, mixed fractions, superscript powers and their empty boxes, scalable brackets and radicals. Contrast has eleven adjustable levels. Fixed glass/pixel grain and lightly shaded characters preserve an LCD appearance. The calculation screen contains only the expression, answer and normal status indicators, now with slightly darker backgrounds behind active icons.
+A real-valued scientific calculator add-in with a natural textbook display and an olive LCD appearance based on Chris’s physical fx-85GT CW. It draws stacked fractions, mixed fractions, superscript powers and their empty boxes, scalable brackets and radicals. Contrast has eleven adjustable levels. Fixed glass/pixel grain and lightly shaded characters preserve an LCD appearance. The calculation screen contains only the expression, answer and normal status indicators, with faint darker electrode patches across the top status row, including inactive areas, matching the fx-85GT CW glass reference.
 
-[Download the latest release](https://github.com/cis5123467-sudo/lcd-math-casio/releases/latest) · [Complete controls and worked examples](KEYBINDS.md) · [Release notes](https://github.com/cis5123467-sudo/lcd-math-casio/releases/tag/v0.0.3)
+[Download the latest release](https://github.com/cis5123467-sudo/lcd-math-casio/releases/latest) · [Complete controls and worked examples](KEYBINDS.md) · [Release notes](https://github.com/cis5123467-sudo/lcd-math-casio/releases/tag/v0.0.3-r1)
 
 ## Install
 
-Download `lcd-math-v0.0.3.g3a`, copy it to the root of USB storage, eject and launch **LCD Math** from **TOOLS** on the existing MPM installation. No companion assets are required. Target: Chris’s working **Graph Math+, OS 02.00.2202**. Physical display revision and exact installed MPM build are not established.
+Download `lcd-math-v0.0.3-r1.g3a`, copy it to the root of USB storage, eject and launch **LCD Math** from **TOOLS** on the existing MPM installation. No companion assets are required. Target: Chris’s working **Graph Math+, OS 02.00.2202**. Physical display revision and exact installed MPM build are not established.
 
-## Changes in v0.0.3
+## Changes in v0.0.3-r1
+
+Revision 1 adds fixed, subtly darker LCD patches across the top status row, including inactive indicator areas seen in the physical fx-85GT CW reference. Existing status symbols draw over these textured patches. The tint follows the contrast setting, while the calculation area and controls remain the same as v0.0.3. The G3A version field identifies this build as `0.0.3-r1`. Earlier release files remain preserved.
+
+## Features retained from v0.0.3
 
 - Central mapping for all 50 Graph Math+ keys and their primary, SHIFT and ALPHA layers, audited against Casio’s [official keypad photograph](https://www.casio-education.fr/wp-content/uploads/2024/03/graph-math-produit.png) and [OS 2.00 manual](https://www.casio.com/content/dam/casio/global/support/manuals/calculators/pdf/2022/g/GRAPH_MATH%2B_Soft_v200_FR.pdf). Full source references and the complete physical table are in [KEYBINDS.md](KEYBINDS.md).
 - All A–Z letters, r and θ; ALPHA lock; literal spaces/quotes; variable assignment using the printed → shortcut. The x,θ,T,Y key enters x and reads stored X in Calculate.
@@ -62,7 +66,7 @@ python3 tools/smoke.py
 python3 tools/test_rendering.py
 python3 tools/test_keyboard_runtime.py
 python3 tools/test_lcd_texture.py
-python3 tools/check_mpm.py /path/to/mpm release/lcd-math-v0.0.3.g3a
+python3 tools/check_mpm.py /path/to/mpm release/lcd-math-v0.0.3-r1.g3a
 ```
 
 Host checks use AddressSanitizer and UndefinedBehaviorSanitizer: 80 numerical/domain cases plus editing, exact forms, history, formats and save recovery; 32 layout bounds/caret/symbol cases; and 50 physical keys across three modifier layers, letters, printed SHIFT actions, ALPHA lock, option shortcuts and Unicode glyphs.
@@ -71,4 +75,4 @@ The actual release binary runs in **emuCasioCalc’s fx-CG50 model**, driving co
 
 These checks do not emulate Graph Math+ hardware or establish physical compatibility. Startup, physical named-key operation, OFF/resume, readability and save/relaunch remain to be checked on Chris’s target calculator. OFF uses gint’s power-off API on the target; the emulator path saves and exits.
 
-The current release is `lcd-math-v0.0.3.g3a`; the next is `lcd-math-v0.0.4.g3a`. Only `.g3a` builds go in local `release/`. Builds are published through GitHub Releases; the source tree contains application code, assets, build/test tools, dependency notices and user documentation. Local assistant instructions, queues, research, release drafts, previews and generated verification output remain ignored by Git.
+The current release is `lcd-math-v0.0.3-r1.g3a`; the next is `lcd-math-v0.0.4.g3a`. Only `.g3a` builds go in local `release/`. Builds are published through GitHub Releases; the source tree contains application code, assets, build/test tools, dependency notices and user documentation. Local assistant instructions, queues, research, release drafts, previews and generated verification output remain ignored by Git.

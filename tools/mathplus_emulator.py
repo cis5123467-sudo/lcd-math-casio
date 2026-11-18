@@ -6,7 +6,7 @@ running on the CG50 emulator. This does not model Graph Math+ LCD/OS hardware.
 from pathlib import Path
 import subprocess,struct
 ROOT=Path(__file__).resolve().parents[1]
-ADDIN=ROOT/'release/lcd-math-v0.0.3.g3a'
+ADDIN=ROOT/'release/lcd-math-v0.0.3-r1.g3a'
 EMULATOR='/tmp/numplay-toolchain/emu-build/emucasiocalc'
 MATRIX={
  'ON':'F1','HOME':'F2','PREVTAB':'F3','UP':'F4','NEXTTAB':'F5','PAGEUP':'F6',

@@ -3,7 +3,7 @@
 import math,shutil,struct
 from PIL import Image,ImageChops,ImageStat
 from mathplus_emulator import ROOT,run,saved,catalog,LETTERS
-base=ROOT/'verification/keyboard-v0.0.3'
+base=ROOT/'verification/keyboard-v0.0.3-r1'
 if base.exists():shutil.rmtree(base)
 def drive(name,keys):return run(base/name,keys)
 def check(name,keys,value,expression=None):

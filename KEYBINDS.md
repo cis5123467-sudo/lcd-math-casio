@@ -1,4 +1,4 @@
-# LCD Math v0.0.3: Graph Math+ controls
+# LCD Math v0.0.3-r1: Graph Math+ controls
 
 Target: **Graph Math+, OS 02.00.2202**. Key legends were checked against [Casio’s official Graph Math+ keypad photograph](https://www.casio-education.fr/wp-content/uploads/2024/03/graph-math-produit.png), the [OS 2.00 software manual](https://www.casio.com/content/dam/casio/global/support/manuals/calculators/pdf/2022/g/GRAPH_MATH%2B_Soft_v200_FR.pdf) and the [hardware manual](https://www.casio.com/content/dam/casio/global/support/manuals/calculators/pdf/2022/g/GRAPH_MATH%2B_Hard_FR.pdf). Relevant printed software pages: 5 (key layers), 9 (ALPHA lock and clipboard), 11–12 (menu option shortcuts), 18 (28 variables and x/X), 19–20 (scientific entry), 217 (factorial through CATALOG).
 
@@ -6,9 +6,9 @@ This is an audit of the official physical keypad and manuals, with software and 
 
 ## Start and modifiers
 
-Copy `lcd-math-v0.0.3.g3a` to the root of the calculator’s USB storage, eject it and launch LCD Math from **TOOLS** in the existing MPM installation. Type an expression, then press **OK** or **EXE**. After an answer, a number starts a new expression and an operator continues using **Ans**. **HOME** saves and exits from every view.
+Copy `lcd-math-v0.0.3-r1.g3a` to the root of the calculator’s USB storage, eject it and launch LCD Math from **TOOLS** in the existing MPM installation. Type an expression, then press **OK** or **EXE**. After an answer, a number starts a new expression and an operator continues using **Ans**. **HOME** saves and exits from every view.
 
-Press and release **SHIFT** or **ALPHA**, then the desired key. Each normally applies once; pressing it again cancels. **SHIFT → ALPHA** enables **A-LOCK** for repeated letters. **ALPHA** cancels the lock. The status row shows the active modifier. A dash in the table means that the keypad has no printed secondary legend: this app retains the primary action on that layer. The two bracket-like tab keys are shown as ⇤ and ⇥, and the double page arrows as ⇈ and ⇊.
+Press and release **SHIFT** or **ALPHA**, then the desired key. Each normally applies once; pressing it again cancels. **SHIFT → ALPHA** enables **A-LOCK** for repeated letters. **ALPHA** cancels the lock. The status row shows the active modifier; faint LCD electrode patches remain visible in inactive positions as well. A dash in the table means that the keypad has no printed secondary legend: this app retains the primary action on that layer. The two bracket-like tab keys are shown as ⇤ and ⇥, and the double page arrows as ⇈ and ⇊.
 
 ## Complete physical keypad
 

@@ -7,8 +7,8 @@ root=Path(__file__).resolve().parents[1]
 ap=argparse.ArgumentParser(description=__doc__)
 ap.add_argument('--baseline-dir',type=Path,help='Optional older render-suite folder for pixel-mask comparison')
 args=ap.parse_args()
-render=root/'verification/render-v0.0.3'
-smoke=root/'verification/smoke-v0.0.3'
+render=root/'verification/render-v0.0.3-r1'
+smoke=root/'verification/smoke-v0.0.3-r1'
 current=Image.open(render/'square-root/result.png').convert('RGB')
 patch=current.crop((150,80,250,140))
 colors=patch.getcolors(1000)
@@ -30,17 +30,20 @@ if args.baseline_dir:
  baseline=Image.open(args.baseline_dir/'square-root/result.png').convert('RGB')
  old_mean=ImageStat.Stat(baseline.crop((150,80,250,140))).mean
  delta=[old_mean[i]-report['background_mean_rgb'][i] for i in range(3)]
- assert all(5<=d<=18 for d in delta),('Expected a slightly darker LCD',delta)
+ assert all(abs(d)<0.01 for d in delta),('Body LCD paper changed',delta)
  for path in render.glob('*/*.png'):
   previous=args.baseline_dir/path.parent.name/path.name
   if not previous.exists():continue
   old=Image.open(previous).convert('RGB').crop((10,30,386,210))
   new=Image.open(path).convert('RGB').crop((10,30,386,210))
-  old_mask=[sum(p)<300 for p in old.get_flattened_data()]
-  new_mask=[sum(p)<300 for p in new.get_flattened_data()]
-  assert old_mask==new_mask, f'Changed glyph geometry: {path}'
+  assert ImageChops.difference(old,new).getbbox() is None, f'Changed calculation pixels: {path}'
   report['baseline_masks_compared']+=1
- report['background_rgb_darkening']=delta
-(root/'verification/texture-v0.0.3-summary.json').write_text(json.dumps(report,indent=2)+'\n')
+ report['body_rgb_difference']=delta
+ # Previously blank status positions now retain faint electrode backing.
+ for x in (13,27,98,118,148,170,190,217,238,262,282,308,329):
+  after=current.getpixel((x,13));before=baseline.getpixel((x,13))
+  assert all(1<=before[i]-after[i]<=9 for i in range(3)),(x,before,after)
+ report['inactive_status_pads_verified']=13
+(root/'verification/texture-v0.0.3-r1-summary.json').write_text(json.dumps(report,indent=2)+'\n')
 print(json.dumps(report,indent=2))
 print('Fixed LCD grain, subtly shaded glyphs, contrast readability and restored frames passed.')
