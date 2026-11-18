@@ -15,7 +15,7 @@
 
 typedef enum {
     Number, Variable, Add, Sub, Mul, Div, Pow, Sin, Cos, Tan, Exp, Ln, Log,
-    Sqrt, Abs, Asin, Acos, Atan, Choose, Permute, Binomial, Normal, Floor, Gcd, Min, Factorial, Cbrt, Sinh, Cosh, Tanh, Asinh, Acosh, Atanh, Ceil, Round, Max, Lcm, Mod, LogBase, Root
+    Sqrt, Abs, Asin, Acos, Atan, Choose, Permute, Binomial, Normal, Floor, Gcd, Min, Factorial, Cbrt, Sinh, Cosh, Tanh, Asinh, Acosh, Atanh, Ceil, Round, Max, Lcm, Mod, LogBase, Root, Mixed, AngleRad, AngleDegree
 } Kind;
 
 typedef struct {
@@ -58,7 +58,7 @@ static const struct { const char *name; Kind kind; int arity; } functions[] = {
     {"norm", Normal, 1}, {"floor", Floor, 1}, {"gcd", Gcd, 2}, {"min", Min, 2}, {"cbrt", Cbrt, 1}, {"sinh", Sinh, 1}, {"cosh", Cosh, 1}, {"tanh", Tanh, 1},
     {"asinh", Asinh, 1}, {"acosh", Acosh, 1}, {"atanh", Atanh, 1}, {"ceil", Ceil, 1},
     {"round", Round, 1}, {"max", Max, 2}, {"lcm", Lcm, 2}, {"mod", Mod, 2},
-    {"logb", LogBase, 2}, {"root", Root, 2}
+    {"logb", LogBase, 2}, {"root", Root, 2}, {"mixed", Mixed, 3}
 };
 
 static Expr make(Kind kind, Expr left, Expr right, double value) {
@@ -99,6 +99,11 @@ static double numeric(Kind kind, double a, double b, double c) {
         case Ln: return log(a);
         case Log: return log10(a);
         case Sqrt: return sqrt(a);
+        case AngleRad: return a*(radians?1:(gradians?200:180)/PI);
+        case AngleDegree: return a*(radians?PI/180:gradians?200.0/180:1);
+        case Mixed:
+            if(a!=trunc(a)||b<0||b!=trunc(b)||c<=0||c!=trunc(c))return NAN;
+            return a+(a<0?-1:1)*b/c;
         case Cbrt: return cbrt(a);
         case Sinh: return sinh(a);
         case Cosh: return cosh(a);
@@ -209,7 +214,11 @@ static Expr atom(Parser *p) {
             return e;
         }
     }
-    if (*start == 'x') { p->input++; return make(Variable, 0, 0, 0); }
+    if (*start == 'x') {
+        p->input++;
+        if(stored_variables.set[26+'X'-'A']) {Expr e=number(stored_variables.value[26+'X'-'A']);if(e)nodes[e].literal_kind=2;return e;}
+        return make(Variable,0,0,0);
+    }
     if (strncmp(start, "pi", 2) == 0) {
         p->input += 2;
         Expr e = number(PI);
@@ -256,6 +265,19 @@ static Expr unary(Parser *p) {
     while (!p->invalid) {
         if (take(p, '!')) base = make(Factorial, base, 0, 0);
         else if (take(p, '%')) base = make(Div, base, number(100), 0);
+        else if(take(p,21))base=make(AngleRad,base,0,0);
+        else if(take(p,24)) {
+            Expr degrees=base;
+            if(isdigit((unsigned char)*p->input)) {
+                Expr minutes=atom(p);if(!take(p,24))p->invalid=true;
+                degrees=make(Add,degrees,make(Div,minutes,number(60),0),0);
+                if(isdigit((unsigned char)*p->input)) {
+                    Expr seconds=atom(p);if(!take(p,24))p->invalid=true;
+                    degrees=make(Add,degrees,make(Div,seconds,number(3600),0),0);
+                }
+            }
+            base=make(AngleDegree,degrees,0,0);
+        }
         else break;
     }
     if (take(p, '^')) return make(Pow, base, unary(p), 0);
@@ -307,7 +329,7 @@ static double evaluate(Expr e, double x) {
     if (node.kind == Number) return node.value;
     if (node.kind == Variable) return x;
     double a = evaluate(node.left, x);
-    if (node.kind == Binomial) {
+    if (node.kind == Binomial || node.kind == Mixed) {
         Node pair = nodes[node.right];
         return numeric(node.kind, a, evaluate(pair.left, x), evaluate(pair.right, x));
     }
@@ -1274,6 +1296,12 @@ static Exact exact_expression(Expr e) {
         if (v.literal_length) return exact_literal(number_tokens[e], v.literal_length);
         return fabs(v.value) <= ExactLimit && trunc(v.value) == v.value ?
                (Exact){(int)v.value, 1, 1} : (Exact){0};
+    }
+    if(v.kind==Mixed) {
+        Node pair=nodes[v.right];Exact a=exact_expression(v.left),b=exact_expression(pair.left),c=exact_expression(pair.right);
+        if(a.d==1&&b.d==1&&c.d==1&&a.rad==1&&b.rad==1&&c.rad==1&&b.n>=0&&c.n>0)
+            return exact_value((int64_t)a.n*c.n+(a.n<0?-1:1)*b.n,c.n,1);
+        return (Exact){0};
     }
     Exact a = exact_expression(v.left);
     if (!a.d) return a;

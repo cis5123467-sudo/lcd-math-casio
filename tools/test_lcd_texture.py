@@ -7,8 +7,8 @@ root=Path(__file__).resolve().parents[1]
 ap=argparse.ArgumentParser(description=__doc__)
 ap.add_argument('--baseline-dir',type=Path,help='Optional older render-suite folder for pixel-mask comparison')
 args=ap.parse_args()
-render=root/'verification/render-v0.0.2'
-smoke=root/'verification/smoke-v0.0.2'
+render=root/'verification/render-v0.0.3'
+smoke=root/'verification/smoke-v0.0.3'
 current=Image.open(render/'square-root/result.png').convert('RGB')
 patch=current.crop((150,80,250,140))
 colors=patch.getcolors(1000)
@@ -41,6 +41,6 @@ if args.baseline_dir:
   assert old_mask==new_mask, f'Changed glyph geometry: {path}'
   report['baseline_masks_compared']+=1
  report['background_rgb_darkening']=delta
-(root/'verification/texture-v0.0.2-summary.json').write_text(json.dumps(report,indent=2)+'\n')
+(root/'verification/texture-v0.0.3-summary.json').write_text(json.dumps(report,indent=2)+'\n')
 print(json.dumps(report,indent=2))
 print('Fixed LCD grain, subtly shaded glyphs, contrast readability and restored frames passed.')

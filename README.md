@@ -1,66 +1,43 @@
-# LCD Math v0.0.2 for Graph Math+
+# LCD Math v0.0.3 for Graph Math+
 
-A scientific calculator add-in with an LCD display refined against Chris's physical fx-85GT CW photograph. This release adds a slightly darker olive LCD background, fixed glass/pixel grain and subtle dot shading in the characters. Natural fractions, powers, roots and their placeholder boxes keep the same layout and calculation behaviour. The main calculation screen contains the expression, answer, and calculator status indicators only. It has no shortcut bar, branding, tooltips, or help text.
+A real-valued scientific calculator add-in with a natural textbook display and an olive LCD appearance based on Chris’s physical fx-85GT CW. It draws stacked fractions, mixed fractions, superscript powers and their empty boxes, scalable brackets and radicals. Contrast has eleven adjustable levels. Fixed glass/pixel grain and lightly shaded characters preserve an LCD appearance. The calculation screen contains only the expression, answer and normal status indicators, now with slightly darker backgrounds behind active icons.
 
-[Download the latest release](https://github.com/cis5123467-sudo/lcd-math-casio/releases/latest) · [Complete controls](KEYBINDS.md) · [Release notes](https://github.com/cis5123467-sudo/lcd-math-casio/releases/tag/v0.0.2)
-
+[Download the latest release](https://github.com/cis5123467-sudo/lcd-math-casio/releases/latest) · [Complete controls and worked examples](KEYBINDS.md) · [Release notes](https://github.com/cis5123467-sudo/lcd-math-casio/releases/tag/v0.0.3)
 
 ## Install
 
-Download `lcd-math-v0.0.2.g3a` from [GitHub Releases](https://github.com/cis5123467-sudo/lcd-math-casio/releases/latest), then copy it to the root of the calculator's USB storage, eject it, then launch **LCD Math** from **TOOLS** on the existing MPM installation. No companion assets are required. Target: Chris's working Graph Math+, OS **02.00.2202**, with MPM already installed.
+Download `lcd-math-v0.0.3.g3a`, copy it to the root of USB storage, eject and launch **LCD Math** from **TOOLS** on the existing MPM installation. No companion assets are required. Target: Chris’s working **Graph Math+, OS 02.00.2202**. Physical display revision and exact installed MPM build are not established.
 
-## LCD contrast
+## Changes in v0.0.3
 
-Press **SETTINGS** or **TOOLS**, select **Contrast**, and press **OK/EXE**. Use **left/right** to adjust the eleven levels from 0 to 10. The text, LCD background and four shade samples update immediately, alongside a textbook formula preview. Press **OK/EXE** or **BACK** to return. Contrast is saved with the other settings when leaving the add-in with **HOME**. This changes the LCD appearance inside the add-in.
+- Central mapping for all 50 Graph Math+ keys and their primary, SHIFT and ALPHA layers, audited against Casio’s [official keypad photograph](https://www.casio-education.fr/wp-content/uploads/2024/03/graph-math-produit.png) and [OS 2.00 manual](https://www.casio.com/content/dam/casio/global/support/manuals/calculators/pdf/2022/g/GRAPH_MATH%2B_Soft_v200_FR.pdf). Full source references and the complete physical table are in [KEYBINDS.md](KEYBINDS.md).
+- All A–Z letters, r and θ; ALPHA lock; literal spaces/quotes; variable assignment using the printed → shortcut. The x,θ,T,Y key enters x and reads stored X in Calculate.
+- Correct SHIFT actions for nth roots, arbitrary-base logarithms, log, ln, inverse sin/cos/tan, π, unary (-), Ans and approximate evaluation. Root index/log base entry precedes the main argument. Factorial is in CATALOG.
+- Mixed-fraction entry, FORMAT choices for decimal/exact, mixed/improper, °′″ and engineering notation; explicit radian and sexagesimal entry.
+- Numbered shortcuts on every selectable menu: **1–9, then A–Z**, proceeding down the list. Use the alphabet-labelled keys directly for A–L and ALPHA for M–Z. CATALOG’s More submenu keeps all entries accessible. SETTINGS, VARIABLE, FORMAT, TOOLS and Copy/Cut use the same convention.
+- App-local selection/copy/cut/paste, operand insertion capture and BMP screen capture on their printed SHIFT keys. Correct named-key help inside the app.
+- Slightly darker LCD backing behind each active status icon. The natural mathematical layout, adjustable contrast and clean calculation screen are retained.
+- Versioned saves now retain all 28 variables and migrate earlier nine-variable saves without losing history or contrast.
 
-## Calculate
+## Quick use
 
-- Number and arithmetic keys work normally. **OK/EXE** evaluates. Missing final closing parentheses are completed when evaluating.
-- **Left/right** moves the insertion cursor. **SHIFT + left/right** jumps to the start/end. Long expressions scroll horizontally.
-- **DEL** deletes the previous character. **BACK**, **AC**, or **SHIFT + DEL** clears the current expression.
-- **Up/down** moves between numerator/denominator fields while editing a fraction; otherwise it recalls and edits the last 20 expressions. In an exponent, DOWN exits the exponent; UP from immediately after a power re-enters it.
-- **FORMAT** toggles exact/decimal answers. Supported exact forms include reduced fractions, single surds and rational multiples of pi; other results use decimal output.
-- After an answer, entering an operator continues with **Ans**. Entering a number starts a fresh expression. The answer key inserts `Ans`.
-- **CATALOG** lists functions. **SETTINGS/TOOLS** changes angle units, output format, precision and contrast, and opens memory and help.
-- **HOME** saves history, settings and memories, then exits to the launcher.
+Enter a calculation and press **OK/EXE**. Operators after an answer continue with Ans; digits start fresh input. **←/→** moves the cursor, **⌫ (DEL)** deletes, **AC/↩** clears, and **↑/↓** selects template fields or history. **HOME** saves and exits.
 
-Fractions use a template: press the fraction key, type the numerator, press DOWN (or RIGHT at the end of the numerator), then type the denominator. Press RIGHT at the end of the denominator to leave the fraction. UP returns to the numerator. Pressing the fraction key after an existing value captures that value as the numerator. Nested fractions are supported. Empty fields display hollow boxes. The ordinary division key displays a division sign (÷).
+**□/□ → 1 → ↓ → 3 → → → EXE** gives a stacked 1/3. **2 → □^□ → 3 → → → EXE** gives 8; the exponent starts as a raised empty box. **√□ → 8 → EXE** gives 2√2. **SHIFT → √□ → 5 → → → 3 → 2 → EXE** gives the fifth root of 32. Long expressions scroll; nested fractions and powers retain their structure.
 
-The power key inserts a raised exponent box. Type the exponent, then press RIGHT or DOWN to leave it. Fractional and nested powers are supported. Grouping and function keys create their closing brackets automatically; pressing the closing-bracket key steps over an existing closing bracket. Empty root and function arguments have placeholders too. Tall expressions keep natural structure and scroll to the active field.
+Open **CATALOG** for other functions. **SETTINGS → 5** opens Contrast: use **←/→**, then **OK/EXE** to return. **FORMAT** opens result presentation choices. **SHIFT → FORMAT** inserts Ans; **SHIFT → EXE (≈)** requests an approximate result. **TOOLS → 1** opens the full key guide.
 
-## Scientific functions
+For memory, enter **value → variable → EXE**. The arrow is **SHIFT → x,θ,T,Y**; use ALPHA plus the printed letter key or select a variable from **VARIABLE**. There are 28 variables: A–Z, r, θ. The complete table, menu shortcuts and examples are in [KEYBINDS.md](KEYBINDS.md).
 
-Arithmetic, parentheses, implicit multiplication such as `2(3+4)`, powers, square/cube/nth roots, reciprocal, absolute value, percentages and factorials; trigonometric and inverse trigonometric functions in degrees, radians and gradians; natural, common and arbitrary-base logarithms; exponentials; hyperbolic and inverse hyperbolic functions; combinations, permutations, greatest common divisor, least common multiple, remainder, min/max and rounding. The catalog also includes the standard normal CDF and binomial probability mass function.
+## Calculation scope
 
-Binary function arguments use a comma, for example `logb(8,2)`, `root(-32,5)`, `ncr(10,3)` or `binom(5,2,0.5)`. The maximum expression length is 111 characters. Calculations use double precision internally; normal decimal display uses 10 significant digits. FIX and SCI expose 0–9 decimal places. Invalid real domains and non-finite results produce an error.
+Arithmetic, parentheses, implicit multiplication, powers, square/cube/nth roots, reciprocal, absolute value, percentages, factorials; trigonometric and inverse trigonometric functions in degrees/radians/gradians; logarithms and exponentials; hyperbolic functions and their inverses; combinations/permutations, gcd/lcm, remainder, min/max, rounding, normal CDF and binomial probability. Calculations use double precision, with reduced fractions, single surds and rational multiples of π as supported exact forms. Expressions hold up to 111 internal characters; history holds 20 results. Invalid domains and non-finite results report errors.
 
-This is a real-valued scientific calculation app. It does not reproduce the fx-991CW's separate matrix, vector, complex, spreadsheet, equation, distribution-editor or statistics-editor applications, or the Graph Math+'s graphing applications.
-
-## Keys and memory
-
-| Key | Action |
-| --- | --- |
-| SHIFT + SIN/COS/TAN | Inverse trig |
-| SHIFT + square | Square root |
-| SHIFT + square-root key | Cube root |
-| SHIFT + LN | Exponential |
-| SHIFT + LOG | Power of 10 |
-| SHIFT + dot | Factorial |
-| SHIFT + division/fraction | Percent |
-| SHIFT + EXP or SHIFT + 7 | Pi |
-| SHIFT + negative or SHIFT + 8 | Euler's number |
-| SHIFT + right parenthesis | Comma |
-| SHIFT + FORMAT | Cycle DEG/RAD/GRAD |
-| VARS or SHIFT + answer/store | Memory menu |
-| ALPHA + 1 through 9 | Recall A, B, C, D, E, F, X, Y, Z |
-
-In the memory menu, **SHIFT + OK/EXE** stores the last numerical answer in the selected variable. **OK/EXE** inserts that variable into the expression. The variable must have a stored value before use. Memory recall preserves numerical double precision; exact symbolic information is maintained by Ans for supported exact results.
-
-For fx-CG50 emulator checks, F1 opens Catalog, F2 opens Settings, F3 opens Memory, and F4 opens Help. The Math+ uses its named keys.
+There are no separate complex, matrix, vector, graphing, spreadsheet, equation or statistics-editor applications. Their printed characters can be entered; unsupported complex, matrix and quoted-text evaluations report explicit errors. Clipboard and capture are this app’s implementations, described in the key guide.
 
 ## Saved files
 
-The add-in creates `lcdmath.dat` in USB storage on normal HOME exit, retaining a previous valid copy as `lcdmath.bak`. `lcdmath.tmp` is used while replacing the save. A version and checksum reject damaged saves; a valid backup can restore the previous session. No save files need to be installed initially. An expression that has not yet been evaluated is not saved.
+HOME saves history, memories, contrast and standard output preferences to `lcdmath.dat`. A previous valid save is retained as `lcdmath.bak`; `lcdmath.tmp` is used during replacement. Version and checksum validation permit backup recovery. Earlier saves migrate automatically. Unevaluated input, the clipboard and temporary engineering/sexagesimal presentation are not saved. **SHIFT → ×10^□** writes/replaces `lcdshot.bmp` in USB storage.
 
 ## Build
 
@@ -78,20 +55,20 @@ Known build: SH GCC **15.2.0**, fxSDK dev **a6e46eb6**, gint dev **463f180f** (r
 
 ## Verification
 
-Run `python3 tools/test.py` for isolated host checks, `python3 tools/check_mpm.py /path/to/mpm release/lcd-math-v0.0.2.g3a` for loader metadata, and `python3 tools/smoke.py` with Pillow and the local emulator for runtime checks. Run `python3 tools/test_lcd_texture.py` after the emulator suites to verify the fixed texture and preserved readability.
+```sh
+python3 tools/test.py
+# Runtime suites require Pillow and the local emuCasioCalc build:
+python3 tools/smoke.py
+python3 tools/test_rendering.py
+python3 tools/test_keyboard_runtime.py
+python3 tools/test_lcd_texture.py
+python3 tools/check_mpm.py /path/to/mpm release/lcd-math-v0.0.3.g3a
+```
 
-The following checks passed for the released binary:
+Host checks use AddressSanitizer and UndefinedBehaviorSanitizer: 80 numerical/domain cases plus editing, exact forms, history, formats and save recovery; 32 layout bounds/caret/symbol cases; and 50 physical keys across three modifier layers, letters, printed SHIFT actions, ALPHA lock, option shortcuts and Unicode glyphs.
 
-- 29 dedicated SuperH fraction, radical, bracket, power, inverse-function and symbol scenarios. Running the tests generates screenshots and decoded saved values locally in `verification/render-v0.0.2/`.
-- 27 host layout cases check drawn bounds, superscript carets, numerator/denominator carets, symbolic function rendering and implicit-product grouping under AddressSanitizer and UndefinedBehaviorSanitizer.
+The actual release binary runs in **emuCasioCalc’s fx-CG50 model**, driving corresponding physical matrix positions through the Graph Math+ mapping. Runtime suites cover arithmetic, persistence, editing/error recovery, menus, contrast limits, all A–Z assignments, x/X alias, r/θ, clipboard, capture, save migration and 29 dedicated mathematical rendering cases. Texture checks cover stable grain, character shading, readable contrast and active status backplates. MPM v1.1’s discovery/metadata C routines recognise the name, version and icon blocks; G3A header/checksum inspection is also performed.
 
-- 66 numerical/domain cases plus template editing and grouping cases under host AddressSanitizer and UndefinedBehaviorSanitizer, plus exact forms, editing, memory, history, display formats, saves and corrupt-save recovery.
-- Actual SuperH binary execution in **emuCasioCalc's fx-CG50 model**: arithmetic, fractions and decimals, automatic parentheses, radicals, trig, factorials, Ans continuation, insertion and deletion, history editing, error correction, catalog, combinations, DEG/RAD/GRAD, memory, help, horizontal scrolling and clean HOME exit.
-- Live contrast changes at both limits, persisted contrast across independent launches, identical restored calculation screens, and no footer text on the main LCD. Running the tests generates screenshots and logs locally in `verification/smoke-v0.0.2/`.
-- MPM v1.1's actual discovery and metadata C functions, with a host file shim, recognise the G3A name, version and icon blocks. The G3A header sizes and checksums are also valid.
+These checks do not emulate Graph Math+ hardware or establish physical compatibility. Startup, physical named-key operation, OFF/resume, readability and save/relaunch remain to be checked on Chris’s target calculator. OFF uses gint’s power-off API on the target; the emulator path saves and exits.
 
-The emulator does not model Graph Math+ hardware. Physical startup, named-key operation, contrast readability, saving, exit and relaunch on Chris's Graph Math+ remain to be checked on that device. Display revision and exact installed MPM build are not established.
-
-## Complete key guide and future filenames
-
-See [KEYBINDS.md](KEYBINDS.md) for all implemented controls and worked examples. The current release is `lcd-math-v0.0.2.g3a`; the next is `lcd-math-v0.0.3.g3a`, incrementing the patch number each time. Build files are distributed through GitHub Releases. The source repository contains application code, assets, build/test tools, dependency notices and user documentation. Generated builds and verification output, local release drafts/previews, research and assistant-only instructions/queues are ignored by Git.
+The current release is `lcd-math-v0.0.3.g3a`; the next is `lcd-math-v0.0.4.g3a`. Only `.g3a` builds go in local `release/`. Builds are published through GitHub Releases; the source tree contains application code, assets, build/test tools, dependency notices and user documentation. Local assistant instructions, queues, research, release drafts, previews and generated verification output remain ignored by Git.

@@ -3,6 +3,8 @@
 #include "mathview.h"
 #include "font.h"
 #include "digits.h"
+#include "text.h"
+#include "keyboard.h"
 #include <gint/display.h>
 #include <stdio.h>
 #include <string.h>
@@ -15,7 +17,7 @@ static uint16_t blend(uint16_t a,uint16_t b,int amount) {
     int blue=((a&31)*(10-amount)+(b&31)*amount)/10;
     return (r<<11)|(g<<5)|blue;
 }
-static uint16_t paper_pixels[256],ink_pixels[256],rule_pixels[256],rule_ink;
+static uint16_t paper_pixels[256],ink_pixels[256],rule_pixels[256],status_pixels[256],rule_ink,status_paper;
 static int palette_contrast=-1;
 static uint16_t shifted(uint16_t color,int step) {
     int r=((color>>11)&31)+step,g=((color>>5)&63)+step,b=(color&31)+step;
@@ -35,6 +37,7 @@ static void palette(void) {
     lcd_ink=rgb565(126-12*c,139-12*c,94-8*c);
     lcd_mid=blend(lcd_paper,lcd_ink,6);
     rule_ink=blend(lcd_paper,lcd_ink,9);
+    status_paper=shifted(lcd_paper,-1);
     // A fixed screen-space pattern models the glass/pixel lattice. No random
     // frame state, missing pixels or changes to font advances are involved.
     for(int y=0;y<16;y++)for(int x=0;x<16;x++) {
@@ -45,6 +48,7 @@ static void palette(void) {
         int dot=((x&1)||(y&1))?1:0;
         if((hash&31)==3)dot++;
         paper_pixels[index]=shifted(lcd_paper,grain);
+        status_pixels[index]=shifted(status_paper,grain);
         ink_pixels[index]=shifted(lcd_ink,dot);
         rule_pixels[index]=shifted(rule_ink,dot);
     }
@@ -55,7 +59,8 @@ void lcd_finish(void) {
     for(int y=0;y<DHEIGHT;y++)for(int x=0;x<DWIDTH;x++) {
         uint16_t *pixel=&gint_vram[y*DWIDTH+x];
         unsigned index=(y&15)*16+(x&15);
-        if(*pixel==LCD_PAPER)*pixel=paper_pixels[index];
+        if(*pixel==status_paper)*pixel=status_pixels[index];
+        else if(*pixel==LCD_PAPER)*pixel=paper_pixels[index];
         else if(*pixel==LCD_INK)*pixel=ink_pixels[index];
         else if(*pixel==rule_ink)*pixel=rule_pixels[index];
     }
@@ -70,8 +75,16 @@ static void rectangle(int x,int y,int w,int h,uint16_t ink) {
     if(x<=r && y<=b) drect(x,y,r,b,ink);
 }
 void lcd_text(int x,int y,const char *text,int scale,uint16_t ink) {
-    for(;*text;text++,x+=6*scale) {
-        unsigned ch=(unsigned char)*text;
+    int units=0;
+    for(;*text;x+=6*scale) {
+        unsigned ch=text_codepoint(&text);
+        if(ch==24)ch=units++==0?0x00b0:units==2?0x2032:0x2033;
+        const unsigned char *symbol=text_symbol(ch);
+        if(symbol) {
+            for(int row=0;row<7;row++)for(int col=0;col<5;col++)
+                if(symbol[row]&(1<<(4-col)))rectangle(x+col*scale,y+row*scale,scale,scale,ink);
+            continue;
+        }
         if(ch==28) {
             rectangle(x,y+3*scale,5*scale,scale,ink);
             rectangle(x+2*scale,y+scale,scale,scale,ink);
@@ -95,25 +108,31 @@ void lcd_text(int x,int y,const char *text,int scale,uint16_t ink) {
 }
 int casio_width(const char *text,int length,bool small,bool bold) {
     (void)bold;
-    int n=length<0?(int)strlen(text):length;
+    int n=text_characters(text,length);
     return n?(n*(small?12:18)-(small?2:3)):0;
 }
 static void math_text(int x,int y,const char *text,uint16_t ink,uint16_t paper,bool small) {
     (void)paper;
     if(small) { lcd_text(x,y,text,2,ink); return; }
     // Taller CW-like numerals retain the existing 18-pixel formula advance.
-    for(;*text;text++,x+=18) {
-        if(*text>='0' && *text<='9') {
+    int units=0;
+    for(;*text;x+=18) {
+        if((unsigned char)*text==24){const char *unit=units++==0?"°":units==2?"′":"″";lcd_text(x,y,unit,3,ink);text++;continue;}
+        if((unsigned char)*text>=128 || ((unsigned char)*text>=20 && (unsigned char)*text<=25)) {
+            const char *start=text;text_codepoint(&text);char glyph[5]={0};memcpy(glyph,start,(size_t)(text-start));lcd_text(x,y,glyph,3,ink);continue;
+        }
+        unsigned ch=(unsigned char)*text++;
+        if(ch>='0' && ch<='9') {
             for(int row=0;row<11;row++) for(int col=0;col<7;col++)
-                if(lcd_digits[*text-'0'][row]&(1<<(6-col)))
+                if(lcd_digits[ch-'0'][row]&(1<<(6-col)))
                     rectangle(x+col*2,y+row*2,2,2,ink);
-        } else if(*text=='+' || *text=='-' || *text=='=' || *text==28 || *text==MathMultiply) {
-            if(*text=='+' || *text=='-' || *text==28) rectangle(x+1,y+10,13,2,ink);
-            if(*text=='+') rectangle(x+6,y+4,2,14,ink);
-            if(*text==28) {rectangle(x+6,y+4,2,2,ink);rectangle(x+6,y+16,2,2,ink);}
-            if(*text=='=') {rectangle(x+1,y+7,13,2,ink);rectangle(x+1,y+14,13,2,ink);}
-            if(*text==MathMultiply) for(int i=0;i<11;i++) {rectangle(x+2+i,y+5+i,2,2,ink);rectangle(x+12-i,y+5+i,2,2,ink);}
-        } else { char glyph[2]={*text,0}; lcd_text(x,y,glyph,3,ink); }
+        } else if(ch=='+' || ch=='-' || ch=='=' || ch==28 || ch==MathMultiply) {
+            if(ch=='+' || ch=='-' || ch==28) rectangle(x+1,y+10,13,2,ink);
+            if(ch=='+') rectangle(x+6,y+4,2,14,ink);
+            if(ch==28) {rectangle(x+6,y+4,2,2,ink);rectangle(x+6,y+16,2,2,ink);}
+            if(ch=='=') {rectangle(x+1,y+7,13,2,ink);rectangle(x+1,y+14,13,2,ink);}
+            if(ch==MathMultiply) for(int i=0;i<11;i++) {rectangle(x+2+i,y+5+i,2,2,ink);rectangle(x+12-i,y+5+i,2,2,ink);}
+        } else { char glyph[2]={(char)ch,0}; lcd_text(x,y,glyph,3,ink); }
     }
 }
 static void noop_text(int x,int y,const char *t,uint16_t i,uint16_t p,bool s) {(void)x;(void)y;(void)t;(void)i;(void)p;(void)s;}
@@ -141,16 +160,26 @@ void lcd_frame(const char *title) {
     if(title) drect(0,205,395,223,0xc69a);
     if(title) lcd_text(16,17,title,1,LCD_INK);
 }
+static void status_backplate(int x,int y,int width,int height) {
+    drect(x,y,x+width-1,y+height-1,status_paper);
+}
 void lcd_calculator(void) {
     lcd_frame(NULL);
     const char *angles[]={"D","R","G"};
+    if(calc.shift)status_backplate(13,13,11,15);
+    if(calc.alpha||calc.alpha_lock)status_backplate(27,13,17,15);
+    status_backplate(45,12,21,16);
+    status_backplate(78,12,14,17);
+    if(calc.memory_set)status_backplate(98,13,12,15);
+    if(calc.format)status_backplate(118,13,23,15);
+    if(calc.count)status_backplate(362,12,15,15);
     lcd_text(16,17,calc.shift?"S":" ",1,LCD_INK);
-    lcd_text(30,17,calc.alpha?"A":" ",1,LCD_INK);
+    lcd_text(30,17,calc.alpha_lock?"A*":calc.alpha?"A":" ",1,LCD_INK);
     // Natural-input symbol and boxed angle indicator, like the CW status row.
     dline(47,21,49,24,LCD_INK); dline(49,24,52,15,LCD_INK);
     dline(52,15,62,15,LCD_INK); dline(54,19,61,19,LCD_INK);
     dline(56,17,60,17,LCD_INK); dline(56,22,60,22,LCD_INK);
-    drect_border(80,14,89,26,LCD_PAPER,1,LCD_INK);
+    drect_border(80,14,89,26,status_paper,1,LCD_INK);
     lcd_text(82,17,angles[calc.angle],1,LCD_INK);
     lcd_text(101,17,calc.memory_set?"M":" ",1,LCD_INK);
     if(calc.format) lcd_text(121,17,calc.format==1?"FIX":"SCI",1,LCD_INK);
@@ -165,7 +194,19 @@ void lcd_calculator(void) {
     if(caret.y+caret.height>clip_bottom) mid-=caret.y+caret.height-clip_bottom;
     int offset=caret.x>369?caret.x-369:0;
     caret=paint_math_input(calc.input,4096,16-offset,mid,&canvas,calc.cursor,false);
-    if(!calc.result && !calc.error) rectangle(caret.x,caret.y,2,caret.height,LCD_INK);
+    if(calc.selection_start>=0 && calc.selection_end>=0) {
+        int a=calc.selection_start,b=calc.selection_end;if(a>b){int swap=a;a=b;b=swap;}
+        for(int i=a;i<b;i++) {
+            MathCaret c=paint_math_input(calc.input,4096,16-offset,mid,&measure_canvas,i,false);
+            MathCaret n=paint_math_input(calc.input,4096,16-offset,mid,&measure_canvas,i+1,false);
+            int width=c.y==n.y && n.x>c.x?n.x-c.x:8;
+            rectangle(c.x,c.y+c.height-1,width,1,LCD_INK);
+        }
+    }
+    if(!calc.result && !calc.error) {
+        if(calc.insert_capture)rectangle(caret.x,caret.y+caret.height-2,10,2,LCD_INK);
+        else rectangle(caret.x,caret.y,2,caret.height,LCD_INK);
+    }
     clip_top=122; clip_bottom=208;
     char answer[RESULT_CAP]; calculator_answer(answer);
     if(calc.error) {
@@ -189,23 +230,24 @@ void lcd_menu(const char *title,const char *const *rows,int count,int selected,c
     int start=selected/5*5;
     for(int i=start;i<count && i<start+5;i++) {
         int y=43+(i-start)*29;
-        if(i==selected) { drect(14,y-4,381,y+20,LCD_INK); lcd_text(22,y,rows[i],2,LCD_PAPER); }
-        else lcd_text(22,y,rows[i],2,LCD_INK);
+        uint16_t ink=i==selected?LCD_PAPER:LCD_INK;
+        if(i==selected)drect(14,y-4,381,y+20,LCD_INK);
+        char option[3];keyboard_option_label(i,option);
+        lcd_text(21,y+3,option,1,ink);lcd_text(46,y,rows[i],2,ink);
     }
     char position[20]; snprintf(position,sizeof(position),"%d/%d",selected+1,count);
     lcd_text(338,18,position,1,LCD_INK);
-    lcd_text(10,212,hint?hint:"UP/DOWN select   EXE choose   BACK return",1,LCD_INK);
+    lcd_text(10,212,hint?hint:"↑/↓ select   OK choose   ↩ return",1,LCD_INK);
 }
 void lcd_help(int page) {
-    static const char *pages[][8]={
-        {"CALCULATING", "EXE / OK evaluates", "Arrows move the cursor", "UP / DOWN recalls history", "DEL deletes; BACK clears", "FORMAT changes exact/decimal", "HOME saves and exits", "LEFT/RIGHT changes help page"},
-        {"SCIENTIFIC KEYS", "SHIFT + SIN/COS/TAN: inverse", "SHIFT + LN: exp", "SHIFT + LOG: 10 to a power", "SHIFT + square: square root", "SHIFT + dot: factorial", "SHIFT + EXP: pi", "SHIFT + (-): e"},
-        {"EDITING & MEMORY", "Fraction: numerator/denominator", "SHIFT + left/right: start/end", "SHIFT + DEL: clear expression", "ANS inserts last answer", "STO opens memory menu", "ALPHA + 1..9 recalls memory", "SHIFT + FORMAT: angle unit"},
-        {"CATALOG & SETUP", "CATALOG lists all functions", "Arguments separated by comma", "Close brackets auto-complete", "TOOLS opens display settings", "DEG / RAD / GRAD angle modes", "NORM / FIX / SCI number modes", "Contrast adjusts the LCD shade"}
-    };
-    lcd_frame("LCD MATH / HELP");
-    for(int i=0;i<8;i++) lcd_text(18,39+i*19,pages[page][i],1,LCD_INK);
-    lcd_text(10,212,"LEFT/RIGHT page   BACK return",1,LCD_INK);
+    lcd_frame("GRAPH MATH+ / KEY GUIDE");
+    lcd_text(18,38,"Key",1,LCD_INK);lcd_text(155,38,"SHIFT",1,LCD_INK);lcd_text(300,38,"ALPHA",1,LCD_INK);
+    int start=page*5;
+    for(size_t i=(size_t)start;i<graph_math_key_count && i<(size_t)start+5;i++) {
+        int y=57+((int)i-start)*26;const KeyBinding *key=&graph_math_keys[i];
+        lcd_text(18,y,key->label,1,LCD_INK);lcd_text(155,y,key->shift_label,1,LCD_INK);lcd_text(300,y,key->alpha_label,1,LCD_INK);
+    }
+    lcd_text(10,212,"←/→ page   ↩ return",1,LCD_INK);
 }
 
 void lcd_contrast(void) {
@@ -221,5 +263,5 @@ void lcd_contrast(void) {
     lcd_text(24,181,"LIGHT",1,LCD_INK);lcd_text(336,181,"DARK",1,LCD_INK);
     char level[16];snprintf(level,sizeof(level),"%d / 10",calc.contrast);
     lcd_text(177,181,level,1,LCD_INK);
-    lcd_text(10,212,"LEFT lighter   RIGHT darker   EXE done",1,LCD_INK);
+    lcd_text(10,212,"← lighter   → darker   OK done",1,LCD_INK);
 }

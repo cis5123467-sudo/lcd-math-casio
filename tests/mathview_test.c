@@ -1,4 +1,5 @@
 #include "mathview.h"
+#include "text.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -6,7 +7,7 @@
 static int left,top,right,bottom,primitives;
 static char text_seen[1024];
 int casio_width(const char *text,int length,bool small,bool bold) {
-    (void)bold;int n=length<0?(int)strlen(text):length;
+    (void)bold;int n=text_characters(text,length);
     return n?n*(small?12:18)-(small?2:3):0;
 }
 static void rect(int x,int y,int w,int h,uint16_t ink) {
@@ -32,7 +33,7 @@ int main(void) {
     const char *cases[]={"{_}/{_}","{1}/{3}","{{1}/{2}}/{3}","{1}/{{2}/{3}}","({1}/{2})^2",
       "sqrt({_}/{_})","sqrt(sqrt(2))","sqrt(8)","cbrt(27)","root(32,5)","root(32,_)",
       "2^(_)","2^(3^(_))","9^({1}/{2})","2^(-3)","asin(0.5)","asinh(2)","logb(8,2)","exp(2)",
-      "2*pi","8\0342*(1+1)","(1/2+3)*4","1/2pi","1/2(3+4)","2^3^2","-1/2","{_}/{2}"};
+      "2*pi","8\0342*(1+1)","(1/2+3)*4","1/2pi","1/2(3+4)","2^3^2","-1/2","{_}/{2}","mixed(_,_,_)","mixed(2,1,3)","42\027A","12°30′0″","\"ABC DEF\""};
     for(unsigned i=0;i<sizeof(cases)/sizeof(*cases);i++)verify(cases[i]);
     reset();paint_math("",4096,0,0,&canvas);assert(primitives==0);
     reset();MathCaret exponent=paint_math_input("2^(_)",4096,0,0,&canvas,3,false);
@@ -45,5 +46,5 @@ int main(void) {
     verify("exp(2)");assert(strstr(text_seen,"e") && !strstr(text_seen,"exp"));
     MathBox f=measure_math("1/2",4096),pi=measure_math("pi",4096),product=measure_math("1/2pi",4096);
     assert(product.width==f.width+pi.width);
-    puts("27 layout bounds, superscript/field carets, symbolic function rendering and implicit-product grouping checks passed.");
+    puts("32 layout bounds, superscript/field carets, symbolic function rendering and implicit-product grouping checks passed.");
 }

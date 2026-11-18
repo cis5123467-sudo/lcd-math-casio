@@ -105,6 +105,7 @@ static int parse_span(const char *start,const char *end,bool small,int depth) {
     if (overflow || depth>24) return leaf(start,(int)(end-start),0,small);
     if(start==end) return leaf(start,0,0,small);
     if(end-start==1 && *start=='_') return leaf(start,1,27,small);
+    if(memchr(start,'"',(size_t)(end-start)))return leaf(start,(int)(end-start),0,small);
     const char *level1 = NULL, *level2 = NULL, *power = NULL;
     int nesting = 0;
     for (const char *p=start;p<end;p++) {
@@ -123,7 +124,7 @@ static int parse_span(const char *start,const char *end,bool small,int depth) {
         if (nesting) continue;
         if ((*p=='+' || *p=='-') && !unary_mark(start,p,end)) {
             if (!level1 || (*level1!='=' && *level1!=MathApprox)) level1=p;
-        } else if (*p=='=' || *p==MathApprox || *p==',') level1=p;
+        } else if (*p=='=' || *p==MathApprox || *p==23 || *p==',') level1=p;
         else if (*p=='*' || *p=='/' || *p==28) level2=p;
         else if (*p=='^' && !power && !level1 && !level2) power=p;
     }
@@ -166,14 +167,15 @@ static int parse_span(const char *start,const char *end,bool small,int depth) {
         bool nth=p-start>=4 && !strncmp(p-4,"root",4);
         bool logbase=p-start==4 && !strncmp(start,"logb",4);
         bool exponential=p-start==3 && !strncmp(start,"exp",3);
+        bool mixed=p-start==5 && !strncmp(start,"mixed",5);
         const char *prefix_end=(root||nth)?p-4:p;
-        const char *comma=NULL;
-        if(nth||logbase) {
+        const char *comma=NULL,*second_comma=NULL;
+        if(nth||logbase||mixed) {
             int level=0;
             for(const char *q=p+1;q<close;q++) {
                 if(*q=='('||*q=='{')level++;
                 if(*q==')'||*q=='}')level--;
-                if(*q==',' && !level) {comma=q;break;}
+                if(*q==',' && !level) {if(!comma)comma=q;else {second_comma=q;break;}}
             }
         }
         int child=parse_math(p+1,comma?comma:close,small,depth+1);
@@ -182,6 +184,11 @@ static int parse_span(const char *start,const char *end,bool small,int depth) {
         if(logbase && index) {
             int label=join(Lowered,leaf(start,3,0,small),index);
             group=join(Adjacent,label,group);prefix_end=start;
+        }
+        if(mixed && comma && second_comma) {
+            int numerator=parse_math(comma+1,second_comma,small,depth+1);
+            int denominator=parse_math(second_comma+1,close,small,depth+1);
+            group=join(Adjacent,child,join(Fraction,numerator,denominator));prefix_end=start;
         }
         if(exponential) {
             group=join(Raised,leaf(start,1,'e',small),parse_math(p+1,close,true,depth+1));
