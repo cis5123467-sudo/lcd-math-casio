@@ -1,0 +1,10 @@
+build-cg/
+__pycache__/
+*.dat
+*.bak
+*.tmp
+
+.DS_Store
+verification/**/storage/
+# Downloaded reference images are linked from research/README.md.
+research/*.png

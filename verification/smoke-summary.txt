@@ -1,0 +1,8 @@
+SuperH arithmetic, exact/decimal, brackets, roots, trig, factorials and Ans passed
+SuperH persistence and identical restored screen passed
+SuperH cursor insertion, history editing and domain error screen passed
+SuperH catalog, combinations, DEG/RAD/GRAD settings passed
+SuperH memory store/recall and help pages passed
+SuperH horizontal scrolling and start/end navigation passed
+Contrast clamps at 0/10, changes all LCD shades live, persists, and main LCD has no footer text
+Native 396x224 screenshots and screen bounds passed

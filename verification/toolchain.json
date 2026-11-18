@@ -1,0 +1,10 @@
+{
+  "gint": "463f180ffb71ccdcef05c928ad19f2a480b14bc1",
+  "fxsdk": "a6e46eb6df060dc4e6e931521205e516c92b6c7f",
+  "fxlibc": "b96335c2292268997d127a84111ee7ec1e438476",
+  "openlibm": "9828d2e3f265a882af6a5bba8ffe6a00c3eeb8d7",
+  "compiler": "sh-elf-gcc 15.2.0",
+  "target": "Graph Math+ OS 02.00.2202, MPM",
+  "emulator_model": "fx-CG50",
+  "physical_hardware_tested": false
+}

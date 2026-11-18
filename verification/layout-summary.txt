@@ -1,0 +1,1 @@
+27 layout bounds, superscript/field carets, symbolic function rendering and implicit-product grouping checks passed.

@@ -1,0 +1,1 @@
+MPM v1.1 discovered lcd-math-1.0.0.g3a as LCD Math (01.00.0000; 151092 bytes), with icon blocks.
