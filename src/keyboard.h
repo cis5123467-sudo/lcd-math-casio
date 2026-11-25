@@ -16,7 +16,7 @@ extern const KeyBinding graph_math_keys[];
 extern const size_t graph_math_key_count;
 KeyAction keyboard_decode(KeyboardState *state,int key);
 const KeyBinding *keyboard_binding(int key);
-int keyboard_from_cg50_matrix(int key);
+int keyboard_event_code(int key, int row, int col);
 int keyboard_menu_option(int key,bool shift,bool alpha);
 void keyboard_option_label(int index,char label[3]);
 #endif

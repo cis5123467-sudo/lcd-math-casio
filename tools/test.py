@@ -22,11 +22,14 @@ with tempfile.TemporaryDirectory(prefix='lcd-layout-check-') as folder:
     print(result.stdout,end='')
 
 sdk=Path(os.environ.get('CASIO_SDK','/tmp/numplay-toolchain/prefix'))
-include=subprocess.check_output([str(sdk/'bin/fxsdk'),'path','include'],text=True).strip()
+header=os.environ.get('CASIO_KEYCODES')
+if not header:
+    include=subprocess.check_output([str(sdk/'bin/fxsdk'),'path','include'],text=True).strip()
+    header=Path(include)/'gint/keycodes.h'
 with tempfile.TemporaryDirectory(prefix='lcd-keyboard-check-') as folder:
     exe=Path(folder)/'checks'
     (Path(folder)/'gint').mkdir()
-    shutil.copyfile(Path(include)/'gint/keycodes.h',Path(folder)/'gint/keycodes.h')
+    shutil.copyfile(header,Path(folder)/'gint/keycodes.h')
     subprocess.run([os.environ.get('CC','cc'),'-std=c11','-Wall','-Wextra','-fsanitize=address,undefined','-g',
         '-I',str(root/'src'),'-I',folder,str(root/'tests/keyboard_test.c'),str(root/'src/keyboard.c'),str(root/'src/text.c'),'-o',str(exe)],check=True)
     result=subprocess.run([str(exe)],check=True,text=True,stdout=subprocess.PIPE)

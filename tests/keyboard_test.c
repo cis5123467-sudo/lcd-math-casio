@@ -50,10 +50,41 @@ int main(int argc,char **argv){
  assert(!strcmp(keyboard_decode(&state,KEY_XOT).text,"A"));assert(!strcmp(keyboard_decode(&state,KEY_FRAC).text,"B"));assert(state.alpha_lock);
  keyboard_decode(&state,KEY_ALPHA);assert(!state.alpha_lock&&!state.alpha);
  keyboard_decode(&state,KEY_SHIFT);keyboard_decode(&state,KEY_SHIFT);assert(!state.shift);
- assert(keyboard_from_cg50_matrix(KEY_F1)==KEY_ON);assert(keyboard_from_cg50_matrix(KEY_F2)==KEY_HOME);
- assert(keyboard_from_cg50_matrix(KEY_ALPHA)==KEY_SHIFT);assert(keyboard_from_cg50_matrix(KEY_SQUARE)==KEY_ALPHA);
- assert(keyboard_from_cg50_matrix(KEY_LN)==KEY_SQRT);assert(keyboard_from_cg50_matrix(KEY_COS)==KEY_SQUARE);
- assert(keyboard_from_cg50_matrix(KEY_NEG)==KEY_FORMAT);
+ // Physical scan fixture from NumAI casio_keys.h (blob 928e23f) and
+ // gint's shared numeric rows. The legacy code also encodes row and column.
+ static const struct { int legacy, expected; } switches[]={
+  {0x91,KEY_ON},{0x92,KEY_HOME},{0x93,KEY_PREVTAB},{0x94,KEY_UP},{0x95,KEY_NEXTTAB},{0x96,KEY_PAGEUP},
+  {0x81,KEY_SETTINGS},{0x82,KEY_BACK},{0x83,KEY_LEFT},{0x84,KEY_OK},{0x85,KEY_RIGHT},{0x86,KEY_PAGEDOWN},
+  {0x71,KEY_SHIFT},{0x72,KEY_ALPHA},{0x73,KEY_VARS},{0x74,KEY_DOWN},{0x75,KEY_CATALOG},{0x76,KEY_TOOLS},
+  {0x61,KEY_XOT},{0x62,KEY_FRAC},{0x63,KEY_SQRT},{0x64,KEY_POWER},{0x65,KEY_SQUARE},{0x66,KEY_EXPFUN},
+  {0x51,KEY_COMMA},{0x52,KEY_SIN},{0x53,KEY_COS},{0x54,KEY_TAN},{0x55,KEY_LEFTP},{0x56,KEY_RIGHTP},
+  {0x41,KEY_7},{0x42,KEY_8},{0x43,KEY_9},{0x44,KEY_DEL},{0x07,KEY_ACON},
+  {0x31,KEY_4},{0x32,KEY_5},{0x33,KEY_6},{0x34,KEY_MUL},{0x35,KEY_DIV},
+  {0x21,KEY_1},{0x22,KEY_2},{0x23,KEY_3},{0x24,KEY_ADD},{0x25,KEY_SUB},
+  {0x11,KEY_0},{0x12,KEY_DOT},{0x13,KEY_EXP},{0x14,KEY_FORMAT},{0x15,KEY_EXE}
+ };
+ assert(sizeof(switches)/sizeof(*switches)==graph_math_key_count);
+ for(size_t i=0;i<sizeof(switches)/sizeof(*switches);i++){
+  int raw=switches[i].legacy,expected=switches[i].expected;
+  int row=raw>>4,col=7-(raw&7);
+  for(int variant=0;variant<2;variant++){
+   int mapped=keyboard_event_code(variant?expected:raw,row,col);
+   assert(mapped==expected && keyboard_binding(mapped));
+   for(int mode=0;mode<3;mode++){
+    KeyboardState actual={mode==1,mode==2,false},reference=actual;
+    KeyAction action=keyboard_decode(&actual,mapped);
+    KeyAction want=keyboard_decode(&reference,expected);
+    assert(action.kind==want.kind && !strcmp(action.text,want.text));
+    assert(actual.alpha==reference.alpha && actual.shift==reference.shift &&
+        actual.alpha_lock==reference.alpha_lock);
+   }
+  }
+ }
+ // These raw legacy codes reproduced the failures on physical hardware.
+ expect(keyboard_event_code(0x52,5,5),false,false,KA_TEXT,"sin(");
+ expect(keyboard_event_code(0x51,5,6),false,false,KA_TEXT,",");
+ expect(keyboard_event_code(0x63,6,4),false,false,KA_TEXT,"sqrt(");
+ expect(keyboard_event_code(0x62,6,5),false,false,KA_FRACTION,"");
  assert(keyboard_menu_option(KEY_1,false,false)==0);
  assert(keyboard_menu_option(KEY_9,false,false)==8);
  assert(keyboard_menu_option(KEY_XOT,false,false)==9);
@@ -70,5 +101,5 @@ int main(int argc,char **argv){
  const char *labels[]={"π","θ","√","□","²","³","⁻","¹","ⁿ","ₐ","ʳ","°","′","″","×","÷","−","→","←","↑","↓","⇤","⇥","⇈","⇊","↩","⌫","≈","↔","■","—"};
  for(unsigned i=0;i<sizeof(labels)/sizeof(*labels);i++){const char *p=labels[i];assert(text_symbol(text_codepoint(&p)));assert(!*p);}
  assert(text_characters("sin⁻¹(θ)",-1)==8);
- puts("50 physical keys × 3 layers, all 26 letters, spaces/quotes, printed SHIFT actions, ALPHA lock, matrix translation and label glyphs passed.");
+ puts("50 physical keys × 3 layers, all 26 letters, spaces/quotes, printed SHIFT actions, ALPHA lock, both raw event formats and label glyphs passed.");
 }

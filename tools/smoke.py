@@ -3,7 +3,7 @@
 import shutil
 from PIL import Image,ImageChops
 from mathplus_emulator import ROOT,run as drive,saved,catalog
-base=ROOT/'verification/smoke-v0.0.3-r1'
+base=ROOT/'verification/smoke-v0.0.4'
 if base.exists():shutil.rmtree(base)
 def run(name,script):return drive(base/name,script)
 def check(entries,expression,value,exact=None):
@@ -52,14 +52,12 @@ assert ImageChops.difference(Image.open(contrast/'calculator.png'),Image.open(co
 light=Image.open(contrast/'light.png').convert('RGB').crop((15,40,380,190))
 dark=Image.open(contrast/'dark.png').convert('RGB').crop((15,40,380,190))
 assert min(sum(p) for p in light.get_flattened_data())>min(sum(p) for p in dark.get_flattened_data())+100
-for shot in (contrast/'calculator.png',calc/'ans.png'):
- im=Image.open(shot).convert('RGB');phases={}
- for y in range(201,215):
-  for x in range(10,385):
-   phase=(x%16,y%16);color=im.getpixel((x,y))
-   assert phase not in phases or phases[phase]==color,'Extra text on main LCD'
-   phases[phase]=color
- assert 1<len(set(phases.values()))<=3,'Missing/excessive LCD grain'
+# Spatial lighting varies across the panel, so use the empty startup frame
+# at the same contrast to detect stray labels in the calculation footer.
+footer=(10,201,385,215)
+startup=Image.open(calc/'startup.png').convert('RGB')
+answer=Image.open(calc/'ans.png').convert('RGB')
+assert ImageChops.difference(startup.crop(footer),answer.crop(footer)).getbbox() is None
 print('Contrast limits, live shades, persistence, clean main LCD passed',flush=True)
 for shot in base.rglob('*.png'):
  im=Image.open(shot).convert('RGB');assert im.size==(396,224)

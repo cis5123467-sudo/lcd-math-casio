@@ -7,4 +7,4 @@ add_executable(lcd-math src/main.c src/calculator.c src/lcd.c src/cas.c src/math
 target_compile_options(lcd-math PRIVATE -Wall -Wextra -Os -g -std=gnu11 -ffunction-sections -fdata-sections -fno-common)
 target_link_options(lcd-math PRIVATE -m4-nofpu -mb -Wl,--gc-sections,-Map=${CMAKE_CURRENT_BINARY_DIR}/lcd-math.map)
 target_link_libraries(lcd-math -Wl,--start-group Gint::Gint c openlibm gcc -Wl,--end-group)
-generate_g3a(TARGET lcd-math OUTPUT release/lcd-math-v0.0.3-r1.g3a NAME "LCD Math" VERSION "0.0.3-r1" ICONS assets/icon-uns.png assets/icon-sel.png)
+generate_g3a(TARGET lcd-math OUTPUT release/lcd-math-v0.0.4.g3a NAME "LCD Math" VERSION "00.00.0004" ICONS assets/icon-uns.png assets/icon-sel.png)

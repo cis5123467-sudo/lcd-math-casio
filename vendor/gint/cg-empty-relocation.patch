@@ -1,0 +1,7 @@
+diff --git a/src/kernel/start.c b/src/kernel/start.c
+index 223853b..f57007b 100644
+--- a/src/kernel/start.c
++++ b/src/kernel/start.c
+@@ -164 +164 @@ static int start2(int load_type, u32 *load_info)
+-	#if !GINT_OS_CP
++	#if GINT_OS_FX

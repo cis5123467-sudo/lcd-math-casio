@@ -3,7 +3,7 @@
 import math,shutil,struct
 from PIL import Image,ImageChops,ImageStat
 from mathplus_emulator import ROOT,run,saved,catalog,LETTERS
-base=ROOT/'verification/keyboard-v0.0.3-r1'
+base=ROOT/'verification/keyboard-v0.0.4'
 if base.exists():shutil.rmtree(base)
 def drive(name,keys):return run(base/name,keys)
 def check(name,keys,value,expression=None):
@@ -66,16 +66,15 @@ png=Image.open(folder/'screen.png').convert('RGB')
 assert bmp.size==(396,224)
 assert max(max(pair) for pair in ImageChops.difference(bmp,png).getextrema())<=7
 print('Literal punctuation/text rejection, ALPHA lock and BMP screen capture: PASS',flush=True)
-# Backplates must be a subtle uniform delta from same-phase LCD paper. Glyphs
-# themselves are excluded by testing only blank edge pixels of each active pad.
+# Inactive legends leave a faint shape, while active ink is much darker.
 folder=drive('status','shot blank.png, SHIFT, shot shift.png, SHIFT, ALPHA, shot alpha.png, ALPHA, 1, EXE, shot history.png, HOME')
 blank=Image.open(folder/'blank.png').convert('RGB')
-shift=Image.open(folder/'shift.png').convert('RGB')
-alpha=Image.open(folder/'alpha.png').convert('RGB')
-for frame,x,y in [(blank,45,12),(blank,78,12),(shift,13,13),(alpha,27,13)]:
- delta=[a-b for a,b in zip(frame.getpixel((x+112,y+32)),frame.getpixel((x,y)))]
- assert all(1<=v<=9 for v in delta),(x,y,delta)
-print('Active icon backplates have a slight LCD shade difference: PASS',flush=True)
+for name,box in [('shift',(15,15,20,22)),('alpha',(26,15,31,22)),('history',(369,16,376,20))]:
+ inactive=blank.crop(box)
+ active=Image.open(folder/f'{name}.png').convert('RGB').crop(box)
+ assert min(map(sum,inactive.get_flattened_data()))>260
+ assert min(map(sum,active.get_flattened_data())) < min(map(sum,inactive.get_flattened_data()))-100
+print('Inactive outlines and active status ink: PASS',flush=True)
 # Migrate the previous SH wire format, including its checksum and old X slot.
 folder=base/'legacy';storage=folder/'storage/fls0';storage.mkdir(parents=True)
 data=bytearray(3796)

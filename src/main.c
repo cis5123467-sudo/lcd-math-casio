@@ -30,7 +30,15 @@ static bool done;
 static KeyboardState keyboard;
 static char clipboard[INPUT_CAP];
 static int selection_start=-1,selection_end=-1;
-static key_event_t nextkey(void){return getkey_opt(GETKEY_REP_ARROWS|GETKEY_REP_PROFILE,NULL);}
+static int nextkey(void){
+ for(;;){
+  key_event_t event=getkey_opt(GETKEY_REP_ALL|GETKEY_REP_PROFILE,NULL);
+  int key=keyboard_event_code(event.key,event.row,event.col);
+  if(event.type==KEYEV_DOWN || (event.type==KEYEV_HOLD &&
+      (key==KEY_UP || key==KEY_DOWN || key==KEY_LEFT || key==KEY_RIGHT)))
+   return key;
+ }
+}
 static void open_view(int id){view=id;selected=0;}
 static void insert_function(const char *text){
  if(!strcmp(text,"root(")||!strcmp(text,"logb("))calculator_indexed(text);
@@ -127,8 +135,7 @@ static void format_result(void){
 int main(void){
  extern void __printf_enable_fp(void);__printf_enable_fp();calculator_init();calculator_load();clearevents();
  while(!done){
-  render();int key=nextkey().key;
-  if(gint[HWCALC]!=HWCALC_FXCG100)key=keyboard_from_cg50_matrix(key);
+  render();int key=nextkey();
   bool had_shift=keyboard.shift,had_alpha=keyboard.alpha||keyboard.alpha_lock;
   KeyAction action=keyboard_decode(&keyboard,key);calc.shift=keyboard.shift;calc.alpha=keyboard.alpha;calc.alpha_lock=keyboard.alpha_lock;
   if(action.kind==KA_MODIFIER)continue;
@@ -181,7 +188,7 @@ int main(void){
  if(!calculator_save()){
   lcd_frame("SAVE ERROR");lcd_text(18,60,"Could not save lcdmath.dat",1,LCD_INK);lcd_text(18,83,"Check USB storage free space.",1,LCD_INK);
   lcd_text(18,120,"EXE or HOME exits without saving.",1,LCD_INK);lcd_finish();dupdate();
-  int key;do{key=nextkey().key;if(gint[HWCALC]!=HWCALC_FXCG100)key=keyboard_from_cg50_matrix(key);}while(key!=KEY_EXE&&key!=KEY_OK&&key!=KEY_HOME);
+  int key;do{key=nextkey();}while(key!=KEY_EXE&&key!=KEY_OK&&key!=KEY_HOME);
  }
  return 0;
 }

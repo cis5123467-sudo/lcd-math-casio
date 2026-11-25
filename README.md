@@ -1,16 +1,17 @@
-# LCD Math v0.0.3-r1 for Graph Math+
+# LCD Math v0.0.4 for Graph Math+
 
-A real-valued scientific calculator add-in with a natural textbook display and an olive LCD appearance based on Chris’s physical fx-85GT CW. It draws stacked fractions, mixed fractions, superscript powers and their empty boxes, scalable brackets and radicals. Contrast has eleven adjustable levels. Fixed glass/pixel grain and lightly shaded characters preserve an LCD appearance. The calculation screen contains only the expression, answer and normal status indicators, with faint darker electrode patches across the top status row, including inactive areas, matching the fx-85GT CW glass reference.
+A real-valued scientific calculator add-in with a natural textbook display and an olive LCD appearance based on Chris’s physical fx-85GT CW. It draws stacked fractions, mixed fractions, superscript powers and their empty boxes, scalable brackets and radicals. Contrast has eleven adjustable levels. Fixed glass/pixel grain and lightly shaded characters preserve an LCD appearance. The calculation screen contains only the expression, answer and normal status indicators, with faint unlit symbols across the top status row, fixed lighting across the glass and a shallow inner shadow.
 
-[Download the latest release](https://github.com/cis5123467-sudo/lcd-math-casio/releases/latest) · [Complete controls and worked examples](KEYBINDS.md) · [Release notes](https://github.com/cis5123467-sudo/lcd-math-casio/releases/tag/v0.0.3-r1)
+[Download the latest release](https://github.com/cis5123467-sudo/lcd-math-casio/releases/latest) · [Complete controls and worked examples](KEYBINDS.md) · [Release notes](https://github.com/cis5123467-sudo/lcd-math-casio/releases/tag/v0.0.4)
 
 ## Install
 
-Download `lcd-math-v0.0.3-r1.g3a`, copy it to the root of USB storage, eject and launch **LCD Math** from **TOOLS** on the existing MPM installation. No companion assets are required. Target: Chris’s working **Graph Math+, OS 02.00.2202**. Physical display revision and exact installed MPM build are not established.
+Download `lcd-math-v0.0.4.g3a`, copy it to the root of USB storage, eject and launch **LCD Math** from **TOOLS** on the existing MPM installation. No companion assets are required. Target: Chris’s working **Graph Math+, OS 02.00.2202**. Physical display revision and exact installed MPM build are not established.
 
-## Changes in v0.0.3-r1
+## Changes in v0.0.4
 
-Revision 1 adds fixed, subtly darker LCD patches across the top status row, including inactive indicator areas seen in the physical fx-85GT CW reference. Existing status symbols draw over these textured patches. The tint follows the contrast setting, while the calculation area and controls remain the same as v0.0.3. The G3A version field identifies this build as `0.0.3-r1`. Earlier release files remain preserved.
+- Graph Math+ keypad events now use the physical row and column. The working NumAI implementation provided the position reference. Older gint builds report legacy codes for the function rows, which caused sin to open FORMAT, comma to insert a fraction, and square root and fraction to be ignored. The entire keypad uses the corrected path, including modifiers and menu shortcuts. [NumAI key map](https://github.com/cis5123467-sudo/numai-casio/blob/main/src/casio_keys.h)
+- The simulated glass has a darker olive-green palette and softer olive-grey ink. Faint inactive symbols replace plain status patches, and the active indicators sit closer together on a shared baseline. A fixed lighting gradient and shallow inner shadow give the glass more depth.
 
 ## Features retained from v0.0.3
 
@@ -53,9 +54,9 @@ cd lcd-math-casio
 python3 tools/build.py
 ```
 
-The existing fxSDK/gint toolchain is required. Set `CASIO_SDK` to the fxSDK installation prefix if needed; `CMAKE` can select the CMake executable. This project uses fxSDK's colour CMake toolchain, the `Gint::Gint` target, and `GenerateG3A`. The small local `FindGint.cmake` resolves this installation's libraries through `fxsdk path` because its sysroot is outside GCC's default library path. The build creates the local `release/` directory. Icons and font data are already generated; `tools/assets.py` regenerates them with Pillow.
+The existing fxSDK/gint toolchain is required. Set `CASIO_SDK` to the fxSDK installation prefix, `CASIO_BUILD_DIR` to select a separate build directory, or `CMAKE` to select the CMake executable. This project uses fxSDK's colour CMake toolchain, the `Gint::Gint` target, and `GenerateG3A`. The small local `FindGint.cmake` resolves this installation's libraries through `fxsdk path` because its sysroot is outside GCC's default library path. The build creates the local `release/` directory. Icons and font data are already generated; `tools/assets.py` regenerates them with Pillow.
 
-Known build: SH GCC **15.2.0**, fxSDK dev **a6e46eb6**, gint dev **463f180f** (reported version 2.11.0), fxlibc dev **b96335c2**, OpenLibm **9828d2e3**. These are the Math+-aware toolchain revisions used by the existing local NumPlay and NumAI ports. The calculation engine and textbook layout started from Chris's local NumAI-MPM project. The display, editor integration, catalog, controls, contrast and save format are specific to this add-in. The fxlibc printf adaptation and linked libraries' notices are under `vendor/`.
+Known build: SH GCC **15.2.0**, fxSDK dev **a6e46eb6**, gint dev **463f180f** (reported version 2.11.0), fxlibc dev **b96335c2**, OpenLibm **9828d2e3**. For this pinned gint revision, apply [the colour startup guard](vendor/gint/cg-empty-relocation.patch) from the gint source root with `git apply --unidiff-zero /path/to/cg-empty-relocation.patch` before building it. The colour linker defines the relocation section as empty, so the guard skips the monochrome relocation loop on colour devices. The calculation engine and textbook layout started from Chris's local NumAI-MPM project. The display, editor integration, catalog, controls, contrast and save format are specific to this add-in. The fxlibc printf adaptation and linked libraries' notices are under `vendor/`.
 
 ## Verification
 
@@ -66,13 +67,13 @@ python3 tools/smoke.py
 python3 tools/test_rendering.py
 python3 tools/test_keyboard_runtime.py
 python3 tools/test_lcd_texture.py
-python3 tools/check_mpm.py /path/to/mpm release/lcd-math-v0.0.3-r1.g3a
+python3 tools/check_mpm.py /path/to/mpm release/lcd-math-v0.0.4.g3a
 ```
 
 Host checks use AddressSanitizer and UndefinedBehaviorSanitizer: 80 numerical/domain cases plus editing, exact forms, history, formats and save recovery; 32 layout bounds/caret/symbol cases; and 50 physical keys across three modifier layers, letters, printed SHIFT actions, ALPHA lock, option shortcuts and Unicode glyphs.
 
-The actual release binary runs in **emuCasioCalc’s fx-CG50 model**, driving corresponding physical matrix positions through the Graph Math+ mapping. Runtime suites cover arithmetic, persistence, editing/error recovery, menus, contrast limits, all A–Z assignments, x/X alias, r/θ, clipboard, capture, save migration and 29 dedicated mathematical rendering cases. Texture checks cover stable grain, character shading, readable contrast and active status backplates. MPM v1.1’s discovery/metadata C routines recognise the name, version and icon blocks; G3A header/checksum inspection is also performed.
+The actual release binary runs in **emuCasioCalc’s fx-CG50 model**, driving corresponding physical matrix positions through the Graph Math+ mapping. Set `CASIO_EMULATOR` to the emulator executable when installed at a different path. Runtime suites cover arithmetic, persistence, editing/error recovery, menus, contrast limits, all A–Z assignments, x/X alias, r/θ, clipboard, capture, save migration and 29 dedicated mathematical rendering cases. Texture checks cover the olive palette, fixed lighting, inner shadow, ink readability and inactive status symbols. MPM v1.1’s discovery/metadata C routines recognise the name, version and icon blocks; G3A header/checksum inspection is also performed.
 
 These checks do not emulate Graph Math+ hardware or establish physical compatibility. Startup, physical named-key operation, OFF/resume, readability and save/relaunch remain to be checked on Chris’s target calculator. OFF uses gint’s power-off API on the target; the emulator path saves and exits.
 
-The current release is `lcd-math-v0.0.3-r1.g3a`; the next is `lcd-math-v0.0.4.g3a`. Only `.g3a` builds go in local `release/`. Builds are published through GitHub Releases; the source tree contains application code, assets, build/test tools, dependency notices and user documentation. Local assistant instructions, queues, research, release drafts, previews and generated verification output remain ignored by Git.
+The current release is `lcd-math-v0.0.4.g3a`. Only `.g3a` builds go in local `release/`. Builds are published through GitHub Releases; the source tree contains application code, assets, build/test tools, dependency notices and user documentation. Local assistant instructions, queues, research, release drafts, previews and generated verification output remain ignored by Git.

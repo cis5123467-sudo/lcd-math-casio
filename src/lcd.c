@@ -17,7 +17,9 @@ static uint16_t blend(uint16_t a,uint16_t b,int amount) {
     int blue=((a&31)*(10-amount)+(b&31)*amount)/10;
     return (r<<11)|(g<<5)|blue;
 }
-static uint16_t paper_pixels[256],ink_pixels[256],rule_pixels[256],status_pixels[256],rule_ink,status_paper;
+static uint16_t paper_pixels[256],ink_pixels[256],rule_pixels[256],status_pixels[256],ghost_pixels[256];
+static uint16_t rule_ink,status_paper,ghost_ink;
+static bool calculation_glass;
 static int palette_contrast=-1;
 static uint16_t shifted(uint16_t color,int step) {
     int r=((color>>11)&31)+step,g=((color>>5)&63)+step,b=(color&31)+step;
@@ -33,11 +35,12 @@ static void palette(void) {
     int c=calc.contrast;
     if(c==palette_contrast)return;
     palette_contrast=c;
-    lcd_paper=rgb565(187-c/2,201-c/2,158-c/2);
-    lcd_ink=rgb565(126-12*c,139-12*c,94-8*c);
+    lcd_paper=rgb565(166-c,178-c,119-c);
+    lcd_ink=rgb565(124-9*c,137-9*c,91-6*c);
     lcd_mid=blend(lcd_paper,lcd_ink,6);
     rule_ink=blend(lcd_paper,lcd_ink,9);
     status_paper=shifted(lcd_paper,-1);
+    ghost_ink=shifted(lcd_paper,-2);
     // A fixed screen-space pattern models the glass/pixel lattice. No random
     // frame state, missing pixels or changes to font advances are involved.
     for(int y=0;y<16;y++)for(int x=0;x<16;x++) {
@@ -49,20 +52,36 @@ static void palette(void) {
         if((hash&31)==3)dot++;
         paper_pixels[index]=shifted(lcd_paper,grain);
         status_pixels[index]=shifted(status_paper,grain);
+        ghost_pixels[index]=shifted(ghost_ink,grain);
         ink_pixels[index]=shifted(lcd_ink,dot);
         rule_pixels[index]=shifted(rule_ink,dot);
     }
 }
 void lcd_finish(void) {
-    // Texture only LCD shades. Bezel colors and all geometric bounds remain
-    // untouched; shade lookup keeps redraw cost independent of expression size.
-    for(int y=0;y<DHEIGHT;y++)for(int x=0;x<DWIDTH;x++) {
-        uint16_t *pixel=&gint_vram[y*DWIDTH+x];
-        unsigned index=(y&15)*16+(x&15);
-        if(*pixel==status_paper)*pixel=status_pixels[index];
-        else if(*pixel==LCD_PAPER)*pixel=paper_pixels[index];
-        else if(*pixel==LCD_INK)*pixel=ink_pixels[index];
-        else if(*pixel==rule_ink)*pixel=rule_pixels[index];
+    for(int y=0;y<DHEIGHT;y++) {
+        // A fixed diagonal lighting slope across the glass. Ordered dithering
+        // blends a single RGB565 step without wide bands or animated noise.
+        int vertical_shade=(DHEIGHT-1-y)*32/(DHEIGHT-1);
+        int rim_y=y< DHEIGHT-1-y ? y : DHEIGHT-1-y;
+        for(int x=0;x<DWIDTH;x++) {
+            uint16_t *pixel=&gint_vram[y*DWIDTH+x];
+            unsigned index=(y&15)*16+(x&15);
+            if(*pixel==LCD_INK) {*pixel=ink_pixels[index];continue;}
+            if(*pixel==rule_ink) {*pixel=rule_pixels[index];continue;}
+            if(*pixel==status_paper) *pixel=status_pixels[index];
+            else if(*pixel==ghost_ink) *pixel=ghost_pixels[index];
+            else if(*pixel==LCD_PAPER) *pixel=paper_pixels[index];
+            else continue;
+            if(calculation_glass) {
+                unsigned phase=(index*73u+19u)&255;
+                int shade=vertical_shade+x*96/(DWIDTH-1);
+                int rim_x=x<DWIDTH-1-x ? x : DWIDTH-1-x;
+                int rim=rim_x<rim_y ? rim_x : rim_y;
+                int shadow=rim<10 ? (10-rim)*24 : 0;
+                if(phase<(unsigned)(shade+shadow))
+                    *pixel=shifted(*pixel,-1);
+            }
+        }
     }
 }
 static int clip_left=0,clip_top=0,clip_right=395,clip_bottom=223;
@@ -143,11 +162,11 @@ static void math_rectangle(int x,int y,int w,int h,uint16_t ink) {
 static MathCanvas canvas={math_text,math_rectangle,0,0};
 static const MathCanvas measure_canvas={noop_text,noop_rect,0,0};
 void lcd_frame(const char *title) {
-    palette(); canvas.ink=LCD_INK; canvas.paper=LCD_PAPER;
+    palette(); calculation_glass=title==NULL; canvas.ink=LCD_INK; canvas.paper=LCD_PAPER;
     clip_left=0; clip_top=0; clip_right=395; clip_bottom=223;
     if(!title) {
         dclear(LCD_PAPER);
-        drect_border(0,0,395,223,LCD_PAPER,2,blend(LCD_PAPER,LCD_INK,5));
+        drect_border(0,0,395,223,LCD_PAPER,2,blend(LCD_PAPER,LCD_INK,3));
         return;
     }
     int bottom=202;
@@ -160,34 +179,34 @@ void lcd_frame(const char *title) {
     if(title) drect(0,205,395,223,0xc69a);
     if(title) lcd_text(16,17,title,1,LCD_INK);
 }
-static void status_backplate(int x,int y,int width,int height) {
-    drect(x,y,x+width-1,y+height-1,status_paper);
+static void status_label(int x,const char *label,bool active) {
+    int width=(int)strlen(label)*6-1;
+    if(active) drect(x-2,12,x+width+1,24,status_paper);
+    lcd_text(x,15,label,1,active?LCD_INK:ghost_ink);
 }
 void lcd_calculator(void) {
     lcd_frame(NULL);
     const char *angles[]={"D","R","G"};
-    // The reference CW glass retains faint rectangular electrode areas even
-    // when their indicators are off. Keep them fixed across the whole row;
-    // active indicators are still drawn separately below.
-    static const uint16_t pads[][4]={
-        {13,13,11,15},{27,13,17,15},{45,12,21,16},{78,12,14,17},
-        {98,13,12,15},{118,13,23,15},{148,13,15,15},{170,13,12,15},
-        {190,13,19,15},{217,13,13,15},{238,13,16,15},{262,13,12,15},
-        {282,13,18,15},{308,13,13,15},{329,13,16,15},{362,12,15,15}
-    };
-    for(unsigned i=0;i<sizeof(pads)/sizeof(*pads);i++)
-        status_backplate(pads[i][0],pads[i][1],pads[i][2],pads[i][3]);
-    lcd_text(16,17,calc.shift?"S":" ",1,LCD_INK);
-    lcd_text(30,17,calc.alpha_lock?"A*":calc.alpha?"A":" ",1,LCD_INK);
-    // Natural-input symbol and boxed angle indicator, like the CW status row.
-    dline(47,21,49,24,LCD_INK); dline(49,24,52,15,LCD_INK);
-    dline(52,15,62,15,LCD_INK); dline(54,19,61,19,LCD_INK);
-    dline(56,17,60,17,LCD_INK); dline(56,22,60,22,LCD_INK);
-    drect_border(80,14,89,26,status_paper,1,LCD_INK);
-    lcd_text(82,17,angles[calc.angle],1,LCD_INK);
-    lcd_text(101,17,calc.memory_set?"M":" ",1,LCD_INK);
-    if(calc.format) lcd_text(121,17,calc.format==1?"FIX":"SCI",1,LCD_INK);
-    if(calc.count) for(int row=0;row<5;row++) dline(369-row,16+row,369+row,16+row,LCD_INK);
+    // Real indicators share a baseline. Unlit positions retain their glyph
+    // silhouettes in the glass, with a weaker shade than active symbols.
+    status_label(15,"S",calc.shift);
+    status_label(26,"A",calc.alpha||calc.alpha_lock);
+    if(calc.alpha_lock) lcd_text(32,15,"*",1,LCD_INK);
+    drect(40,12,58,24,status_paper);
+    dline(42,19,44,22,LCD_INK);
+    dline(44,22,47,14,LCD_INK);
+    dline(47,14,56,14,LCD_INK);
+    dline(49,17,55,17,LCD_INK);
+    dline(50,20,55,20,LCD_INK);
+    drect_border(63,12,72,24,status_paper,1,LCD_INK);
+    lcd_text(65,15,angles[calc.angle],1,LCD_INK);
+    status_label(80,"M",calc.memory_set);
+    status_label(93,"FIX",calc.format==1);
+    status_label(115,"SCI",calc.format==2);
+    uint16_t history_ink=calc.count?LCD_INK:ghost_ink;
+    if(calc.count) drect(365,12,378,24,status_paper);
+    for(int row=0;row<4;row++)
+        dline(372-row,16+row,372+row,16+row,history_ink);
     clip_left=16; clip_right=379; clip_top=32; clip_bottom=114;
     MathBox box=measure_math(calc.input,4096);
     int mid=54;

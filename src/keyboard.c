@@ -68,17 +68,20 @@ KeyAction keyboard_decode(KeyboardState *s,int key) {
  s->shift=false;s->alpha=s->alpha_lock;
  return action;
 }
-int keyboard_from_cg50_matrix(int key) {
- // The emulator supplies fx-CG50 matrix positions. Translate the same physical
- // switches through gint's Math+ map, so tests exercise this release's real map.
- static const int rows[]={KEY_ON,KEY_HOME,KEY_PREVTAB,KEY_UP,KEY_NEXTTAB,KEY_PAGEUP,
-  KEY_SETTINGS,KEY_BACK,KEY_LEFT,KEY_OK,KEY_RIGHT,KEY_PAGEDOWN,
-  KEY_SHIFT,KEY_ALPHA,KEY_VARS,KEY_DOWN,KEY_CATALOG,KEY_TOOLS,
-  KEY_XOT,KEY_FRAC,KEY_SQRT,KEY_POWER,KEY_SQUARE,KEY_EXPFUN,
-  KEY_COMMA,KEY_SIN,KEY_COS,KEY_TAN,KEY_LEFTP,KEY_RIGHTP};
- int row=key>>4,col=(key&15)-1;
- if(row>=5&&row<=9&&col>=0&&col<6)return rows[(9-row)*6+col];
- if(key==KEY_NEG)return KEY_FORMAT;
+int keyboard_event_code(int key, int row, int col) {
+ // NumAI's Graph Math+ map uses physical positions. Older gint builds leave
+ // rows 5–6 with legacy event codes, even on hardware identified as Math+.
+ // Using the same positions on the emulator drives the same input path.
+ static const int top_rows[5][6]={
+  {KEY_ON,KEY_HOME,KEY_PREVTAB,KEY_UP,KEY_NEXTTAB,KEY_PAGEUP},
+  {KEY_SETTINGS,KEY_BACK,KEY_LEFT,KEY_OK,KEY_RIGHT,KEY_PAGEDOWN},
+  {KEY_SHIFT,KEY_ALPHA,KEY_VARS,KEY_DOWN,KEY_CATALOG,KEY_TOOLS},
+  {KEY_XOT,KEY_FRAC,KEY_SQRT,KEY_POWER,KEY_SQUARE,KEY_EXPFUN},
+  {KEY_COMMA,KEY_SIN,KEY_COS,KEY_TAN,KEY_LEFTP,KEY_RIGHTP},
+ };
+ if(row>=5 && row<=9 && col>=1 && col<=6)
+  return top_rows[9-row][6-col];
+ if(row==1 && col==3) return KEY_FORMAT;
  return key;
 }
 
